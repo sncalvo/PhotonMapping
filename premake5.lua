@@ -6,6 +6,10 @@ workspace "PhotonMapping"
 outputdir = "%{cfg.buildcfg}-%{cfg.system}"
 
 project "PhotonMapping"
+  flags "RelativeLinks"
+
+  buildoptions "-Wl,-rpath=."
+
   location "build/PhotonMapping"
   kind "WindowedApp"
   language "C++"
@@ -18,7 +22,13 @@ project "PhotonMapping"
 
   includedirs { "%{prj.name}/vendor/includes" }
 
-  libdirs { "%{prj.name}/vendor/libraries" }
+  libdirs { "%{prj.name}/vendor/libraries/%{cfg.system}" }
+
+  links { "embree3" }
+
+  postbuildcommands "{COPYDIR} %{wks.location}/%{prj.name}/vendor/libraries/%{cfg.system}/*.dylib %{wks.location}/bin/"
+  -- filter "files:%{prj.name}/vendor/libraries/%{cfg.system}/*.dylib"
+  --   buildaction "Embed"
 
   filter { "action:make" }
 
@@ -30,4 +40,3 @@ project "PhotonMapping"
     defines { "NDEBUG" }
     optimize "On"
 
-  filter {}
