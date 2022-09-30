@@ -3,8 +3,14 @@
 #include <math.h>
 #include <limits>
 #include <stdio.h>
+#include <filesystem>
 
 #include <iostream>
+
+#include "assimp/Importer.hpp"      // C++ importer interface
+#include "assimp/scene.h"           // Output data structure
+#include "assimp/postprocess.h"     // Post processing flags
+#include "./Object.hpp"
 
 void errorFunction(void* userPtr, enum RTCError error, const char* str)
 {
@@ -150,6 +156,11 @@ void castRay(RTCScene scene,
 int main()
 {
     printf("BEGIN.\n");
+
+    std::cout << std::filesystem::current_path() << std::endl;
+
+    const Object* object = new Object("./assets/colored_cow.obj");
+
     /* Initialization. All of this may fail, but we will be notified by
     * our errorFunction. */
     RTCDevice device = initializeDevice();

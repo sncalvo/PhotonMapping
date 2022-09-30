@@ -24,12 +24,16 @@ project "PhotonMapping"
   libdirs { "%{prj.name}/vendor/libraries/%{cfg.system}" }
 
   links { "embree3" }
+  links { "assimp-vc142-mt" }
+  links { "FreeImage" }
 
   filter "system:macosx"
     postbuildcommands "{COPYFILE} %{wks.location}/../%{prj.name}/vendor/libraries/%{cfg.system}/*.dylib %{cfg.targetdir}"
 
   filter "system:windows"
     postbuildcommands "{COPYFILE} %{wks.location}../%{prj.name}/vendor/libraries/%{cfg.system}/*.dll %{cfg.targetdir}"
+
+  postbuildcommands "{COPYFILE} %{wks.location}../%{prj.name}/assets/* %{cfg.targetdir}"
 
   filter { "action:make" }
 
