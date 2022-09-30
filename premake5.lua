@@ -1,6 +1,6 @@
 workspace "PhotonMapping"
   configurations { "Debug", "Release" }
-  platforms { "Win64" }
+  platforms { "x64" }
 
   location "build"
 
@@ -26,7 +26,7 @@ project "PhotonMapping"
   links { "embree3" }
 
   filter "system:macosx"
-    postbuildcommands "{COPYDIR} %{wks.location}../%{prj.name}/vendor/libraries/%{cfg.system}/*.dylib %{wks.location}/bin/"
+    postbuildcommands "{COPYFILE} %{wks.location}/../%{prj.name}/vendor/libraries/%{cfg.system}/*.dylib %{cfg.targetdir}"
 
   filter "system:windows"
     postbuildcommands "{COPYFILE} %{wks.location}../%{prj.name}/vendor/libraries/%{cfg.system}/*.dll %{cfg.targetdir}"
@@ -42,4 +42,4 @@ project "PhotonMapping"
     optimize "On"
 
   filter "system:macosx"
-    runpathdirs { "./" }
+    runpathdirs { "%{cfg.targetdir}" }
