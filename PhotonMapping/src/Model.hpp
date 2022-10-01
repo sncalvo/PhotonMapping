@@ -24,12 +24,14 @@ private:
     
     void _loadModel(std::string const &path);
     
+    glm::mat4 _searchLongerAABBTransformation(const aiScene *scene) const;
+    
     /*
      processes a node in a recursive fashion.
      Processes each individual mesh located at the node and repeats this process
      on its children nodes (if any).
      */
-    void _processNode(aiNode *node, const aiScene *scene);
+    void _processNode(aiNode *node, const aiScene *scene, glm::mat4 transformation);
     
-    Mesh _processMesh(aiMesh *mesh, const aiScene *scene);
+    Mesh _processMesh(aiMesh *mesh, const aiScene *scene, glm::mat4 transformation);
 };

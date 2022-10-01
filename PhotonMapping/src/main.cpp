@@ -163,7 +163,7 @@ int main()
     /* Initialization. All of this may fail, but we will be notified by
      * our errorFunction. */
     RTCDevice device = initializeDevice();
-    const Model* model = new Model("./assets/colored_cow.obj", device);
+    const Model* model = new Model("./assets/cubito.obj", device);
     
     RTCScene scene = initializeScene(device, model);
     
