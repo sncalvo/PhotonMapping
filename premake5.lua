@@ -24,7 +24,7 @@ project "PhotonMapping"
   libdirs { "%{prj.name}/vendor/libraries/%{cfg.system}" }
 
   links { "embree3" }
-  links { "assimp-vc142-mt" }
+  links { "assimp" }
   links { "FreeImage" }
 
   filter "system:macosx"
