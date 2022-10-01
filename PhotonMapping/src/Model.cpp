@@ -6,11 +6,7 @@ Model::Model(const std::string& objectPath, RTCDevice device) : _device(device) 
     _loadModel(objectPath);
 }
 
-void Model::addToEmbreeScene(RTCScene scene) const {
-    _commit(scene);
-}
-
-void Model::_commit(RTCScene scene) const  {
+void Model::commit(RTCScene scene) const  {
     for (auto mesh : _meshes) {
         mesh.commit(scene);
     }
