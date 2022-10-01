@@ -1,15 +1,7 @@
-#include "embree3/rtcore.h"
-#include <stdio.h>
-#include <math.h>
-#include <limits>
-#include <stdio.h>
-#include <filesystem>
 #include <memory>
 #include <iostream>
 
-#include "assimp/Importer.hpp"      // C++ importer interface
-#include "assimp/scene.h"           // Output data structure
-#include "assimp/postprocess.h"     // Post processing flags
+#include <embree3/rtcore.h>
 
 #include "Model.hpp"
 #include "Scene.hpp"
@@ -32,10 +24,6 @@ RTCDevice initializeDevice()
     return device;
 }
 
-/*
- * Cast a single ray with origin (ox, oy, oz) and direction
- * (dx, dy, dz).
- */
 bool castRay(RTCScene scene, Vector vector)
 {
     /*
@@ -89,12 +77,6 @@ bool castRay(RTCScene scene, Vector vector)
 
 int main()
 {
-    printf("BEGIN.\n");
-    
-    std::cout << std::filesystem::current_path() << std::endl;
-    
-    /* Initialization. All of this may fail, but we will be notified by
-     * our errorFunction. */
     RTCDevice device = initializeDevice();
     auto scene = std::make_unique<Scene>(device);
     
@@ -111,8 +93,7 @@ int main()
         for (unsigned int y = 0; y < image->height; ++y) {
             // Build vector coming from x, y
             float oy = (float)y / (float)image->height;
-            
-            // Intersect vector
+
             Vector ray{
                 ox, oy, -1,
                 0., 0., 1.
@@ -120,7 +101,6 @@ int main()
             
             auto hit = castRay(scene->scene, ray);
             
-            // Write vector result
             if (hit) {
                 image->writePixel(x, y, Color { 125, 125 });
             } else {
