@@ -38,7 +38,7 @@ project "PhotonMapping"
 
   filter "system:macosx"
     postbuildcommands "{COPYFILE} %{wks.location}/../%{prj.name}/vendor/libraries/%{cfg.system}/*.dylib* %{cfg.targetdir}"
-    postbuildcommands "{COPY} %{wks.location}/../%{prj.name}/assets %{cfg.targetdir}/assets/"
+    postbuildcommands "{COPY} %{wks.location}/../%{prj.name}/assets %{cfg.targetdir}/"
 
   filter "system:windows"
     postbuildcommands "{COPYFILE} %{wks.location}../%{prj.name}/vendor/libraries/%{cfg.system}/*.dll %{cfg.targetdir}"

@@ -1,8 +1,8 @@
 #pragma once
 
-#include <assimp/Importer.hpp>      // C++ importer interface
-#include <assimp/scene.h>           // Output data structure
-#include <assimp/postprocess.h>     // Post processing flags
+#include <assimp/Importer.hpp>
+#include <assimp/scene.h>
+#include <assimp/postprocess.h>
 #include <embree3/rtcore.h>
 
 #include <vector>
@@ -10,28 +10,28 @@
 
 #include "Mesh.hpp"
 
+/// Model that represents a list of meshes used in the scene for ray tracing and path tracing
 class Model {
 public:
+    /// Contructs the model from the model file and saves the device for later use and generates meshes for it with their geometries using the device
+    /// - Parameters:
+    ///   - objectPath: path to object that will be read
+    ///   - device: device used to generate the geometries
     Model(const std::string& objectPath, RTCDevice device);
-    
-    void addToEmbreeScene(RTCScene scene) const;
+
+    /// Commits all meshes in the scene for ray tracing
+    /// - Parameter scene: scene used to commit meshes
+    void commit(RTCScene scene) const;
 
 private:
     RTCDevice _device;
     std::vector<Mesh> _meshes;
-    
-    void _commit(RTCScene scene) const;
-    
+
     void _loadModel(std::string const &path);
-    
+
     glm::mat4 _searchLongerAABBTransformation(const aiScene *scene) const;
-    
-    /*
-     processes a node in a recursive fashion.
-     Processes each individual mesh located at the node and repeats this process
-     on its children nodes (if any).
-     */
+
     void _processNode(aiNode *node, const aiScene *scene, glm::mat4 transformation);
-    
+
     Mesh _processMesh(aiMesh *mesh, const aiScene *scene, glm::mat4 transformation);
 };

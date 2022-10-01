@@ -1,19 +1,12 @@
-#include "embree3/rtcore.h"
-#include <stdio.h>
-#include <math.h>
-#include <limits>
-#include <stdio.h>
-#include <filesystem>
-
+#include <memory>
 #include <iostream>
 
-#include "assimp/Importer.hpp"      // C++ importer interface
-#include "assimp/scene.h"           // Output data structure
-#include "assimp/postprocess.h"     // Post processing flags
+#include <embree3/rtcore.h>
 
-#include "./Model.hpp"
-#include "./Image.hpp"
-#include "./Vector.hpp"
+#include "Model.hpp"
+#include "Scene.hpp"
+#include "Image.hpp"
+#include "Vector.hpp"
 
 void errorFunction(void* userPtr, enum RTCError error, const char* str)
 {
@@ -23,86 +16,14 @@ void errorFunction(void* userPtr, enum RTCError error, const char* str)
 RTCDevice initializeDevice()
 {
     RTCDevice device = rtcNewDevice(NULL);
-    
+
     if (!device)
         printf("error %d: cannot create device\n", rtcGetDeviceError(NULL));
-    
+
     rtcSetDeviceErrorFunction(device, errorFunction, NULL);
     return device;
 }
 
-RTCScene initializeScene(RTCDevice device, const Model* model)
-{
-    RTCScene scene = rtcNewScene(device);
-    
-    /*
-     * Create a triangle mesh geometry, and initialize a single triangle.
-     * You can look up geometry types in the API documentation to
-     * find out which type expects which buffers.
-     *
-     * We create buffers directly on the device, but you can also use
-     * shared buffers. For shared buffers, special care must be taken
-     * to ensure proper alignment and padding. This is described in
-     * more detail in the API documentation.
-     */
-//    RTCGeometry geom = rtcNewGeometry(device, RTC_GEOMETRY_TYPE_TRIANGLE);
-//    float* vertices = (float*)rtcSetNewGeometryBuffer(geom,
-//                                                      RTC_BUFFER_TYPE_VERTEX,
-//                                                      0,
-//                                                      RTC_FORMAT_FLOAT3,
-//                                                      3 * sizeof(float),
-//                                                      3);
-//
-//    unsigned* indices = (unsigned*)rtcSetNewGeometryBuffer(geom,
-//                                                           RTC_BUFFER_TYPE_INDEX,
-//                                                           0,
-//                                                           RTC_FORMAT_UINT3,
-//                                                           3 * sizeof(unsigned),
-//                                                           1);
-//
-//    if (vertices && indices)
-//    {
-//        // x               y                  z
-//        vertices[0] = 0.f; vertices[1] = 0.f; vertices[2] = 1.f;
-//        vertices[3] = 1.f; vertices[4] = 0.f; vertices[5] = 1.f;
-//        vertices[6] = 0.f; vertices[7] = 1.f; vertices[8] = 1.f;
-//
-//        indices[0] = 0; indices[1] = 1; indices[2] = 2;
-//    }
-    
-    /*
-     * You must commit geometry objects when you are done setting them up,
-     * or you will not get any intersections.
-     */
-//    rtcCommitGeometry(geom);
-    
-    /*
-     * In rtcAttachGeometry(...), the scene takes ownership of the geom
-     * by increasing its reference count. This means that we don't have
-     * to hold on to the geom handle, and may release it. The geom object
-     * will be released automatically when the scene is destroyed.
-     *
-     * rtcAttachGeometry() returns a geometry ID. We could use this to
-     * identify intersected objects later on.
-     */
-//    rtcAttachGeometry(scene, geom);
-//    rtcReleaseGeometry(geom);
-    
-    model->addToEmbreeScene(scene);
-    
-    /*
-     * Like geometry objects, scenes must be committed. This lets
-     * Embree know that it may start building an acceleration structure.
-     */
-    rtcCommitScene(scene);
-    
-    return scene;
-}
-
-/*
- * Cast a single ray with origin (ox, oy, oz) and direction
- * (dx, dy, dz).
- */
 bool castRay(RTCScene scene, Vector vector)
 {
     /*
@@ -112,7 +33,7 @@ bool castRay(RTCScene scene, Vector vector)
      */
     struct RTCIntersectContext context;
     rtcInitIntersectContext(&context);
-    
+
     /*
      * The ray hit structure holds both the ray and the hit.
      * The user must initialize it properly -- see API documentation
@@ -131,13 +52,13 @@ bool castRay(RTCScene scene, Vector vector)
     rayhit.ray.flags = 0;
     rayhit.hit.geomID = RTC_INVALID_GEOMETRY_ID;
     rayhit.hit.instID[0] = RTC_INVALID_GEOMETRY_ID;
-    
+
     /*
      * There are multiple variants of rtcIntersect. This one
      * intersects a single ray with the scene.
      */
     rtcIntersect1(scene, &context, &rayhit);
-    
+
     if (rayhit.hit.geomID != RTC_INVALID_GEOMETRY_ID)
     {
         /* Note how geomID and primID identify the geometry we just hit.
@@ -147,45 +68,39 @@ bool castRay(RTCScene scene, Vector vector)
          * get geomID=0 / primID=0 for all hits.
          * There is also instID, used for instancing. See
          * the instancing tutorials for more information */
-        
+
         return true;
     }
-    
+
     return false;
 }
 
 int main()
 {
-    printf("BEGIN.\n");
-    
-    std::cout << std::filesystem::current_path() << std::endl;
-    
-    /* Initialization. All of this may fail, but we will be notified by
-     * our errorFunction. */
     RTCDevice device = initializeDevice();
-    const Model* model = new Model("./assets/cubito.obj", device);
-    
-    RTCScene scene = initializeScene(device, model);
-    
+    auto scene = std::make_unique<Scene>(device);
+
+    auto model = std::make_shared<Model>("./assets/cubito.obj", device);
+
+    scene->addModel(model);
+    scene->commit();
+
     auto image = new Image(256, 256);
-    
+
     for (unsigned int x = 0; x < image->width; ++x) {
         float ox = (float)x / (float)image->width;
-        
+
         for (unsigned int y = 0; y < image->height; ++y) {
             // Build vector coming from x, y
             float oy = (float)y / (float)image->height;
-            
-            // Intersect vector
+
             Vector ray{
                 ox, oy, -1,
                 0., 0., 1.
             };
-            
-            auto hit = castRay(scene, ray);
-            
-            
-            // Write vector result
+
+            auto hit = castRay(scene->scene, ray);
+
             if (hit) {
                 image->writePixel(x, y, Color { 125, 125 });
             } else {
@@ -195,17 +110,8 @@ int main()
     }
 
     image->save("test.png");
-    
-    /* This will hit the triangle at t=1. */
-    // castRay(scene, 0, 0, -1, 0, 0, 1);
-    
-    /* This will not hit anything. */
-    // castRay(scene, 1, 1, -1, 0, 0, 1);
-    
-    /* Though not strictly necessary in this example, you should
-     * always make sure to release resources allocated through Embree. */
-    rtcReleaseScene(scene);
+
     rtcReleaseDevice(device);
-    
+
     return 0;
 }

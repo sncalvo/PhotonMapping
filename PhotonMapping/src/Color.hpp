@@ -1,6 +1,6 @@
 #pragma once
 
-#include "FreeImage/FreeImage.h"
+#include <freeimage/FreeImage.h>
 
 struct Color {
     unsigned char r, g, b, a;
