@@ -23,17 +23,26 @@ project "PhotonMapping"
 
   libdirs { "%{prj.name}/vendor/libraries/%{cfg.system}" }
 
-  links { "embree3" }
-  links { "assimp" }
-  links { "FreeImage" }
+  -- Embeding libraries manually for macos
+  filter "action:not xcode4"
+    links { "embree3" }
+    links { "assimp" }
+    links { "freeimage" }
+
+  filter "action:xcode4"
+    links { "embree3", "assimp", "%{wks.location}/../%{prj.name}/vendor/libraries/%{cfg.system}/libfreeimage.3.18.0.dylib" }
+    externalincludedirs { "%{prj.name}/vendor/includes" }
+    sysincludedirs { "%{prj.name}/vendor/includes" }
+    frameworkdirs { "%{prj.name}/vendor/libraries/%{cfg.system}" }
+    embedAndSign { "embree3", "assimp", "%{wks.location}/../%{prj.name}/vendor/libraries/%{cfg.system}/libfreeimage.3.18.0.dylib" }
 
   filter "system:macosx"
-    postbuildcommands "{COPYFILE} %{wks.location}/../%{prj.name}/vendor/libraries/%{cfg.system}/*.dylib %{cfg.targetdir}"
+    postbuildcommands "{COPYFILE} %{wks.location}/../%{prj.name}/vendor/libraries/%{cfg.system}/*.dylib* %{cfg.targetdir}"
+    postbuildcommands "{COPY} %{wks.location}/../%{prj.name}/assets %{cfg.targetdir}/assets/"
 
   filter "system:windows"
     postbuildcommands "{COPYFILE} %{wks.location}../%{prj.name}/vendor/libraries/%{cfg.system}/*.dll %{cfg.targetdir}"
-
-  postbuildcommands "{COPY} %{wks.location}../%{prj.name}/assets %{cfg.targetdir}/assets/"
+    postbuildcommands "{COPY} %{wks.location}../%{prj.name}/assets %{cfg.targetdir}/assets/"
 
   filter { "action:make" }
 
