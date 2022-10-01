@@ -10,8 +10,9 @@ public:
     void save(const char* filename);
 
     ~Image();
+
+    const unsigned int width;
+    const unsigned int height;
 private:
     FIBITMAP* _bitmap;
-    unsigned int _width;
-    unsigned int _height;
 };

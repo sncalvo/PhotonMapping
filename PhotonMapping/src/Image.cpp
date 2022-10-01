@@ -2,9 +2,10 @@
 
 constexpr unsigned int PIXEL_SIZE = 24;
 
-Image::Image(unsigned int width, unsigned int height) {
-    _width = width;
-    _height = height;
+Image::Image(unsigned int width, unsigned int height):
+    width(width),
+    height(height)
+{
     _bitmap = FreeImage_Allocate(width, height, PIXEL_SIZE);
 
     if (!_bitmap) {
@@ -13,11 +14,13 @@ Image::Image(unsigned int width, unsigned int height) {
 }
 
 void Image::writePixel(unsigned int x, unsigned int y, Color color) {
-    if (x >= _width || y >= _height) {
+    if (x >= width || y >= height) {
         throw "Error, trying to write pixel in wrong location";
     }
 
-    FreeImage_SetPixelColor(_bitmap, x, y, &color.toRGBQuad());
+    RGBQUAD rgbColor = color.toRGBQuad();
+
+    FreeImage_SetPixelColor(_bitmap, x, y, &rgbColor);
 }
 
 void Image::save(const char *filename) {

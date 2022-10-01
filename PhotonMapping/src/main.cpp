@@ -10,7 +10,10 @@
 #include "assimp/Importer.hpp"      // C++ importer interface
 #include "assimp/scene.h"           // Output data structure
 #include "assimp/postprocess.h"     // Post processing flags
+
 #include "./Object.hpp"
+#include "./Image.hpp"
+#include "./Vector.hpp"
 
 void errorFunction(void* userPtr, enum RTCError error, const char* str)
 {
@@ -59,9 +62,10 @@ RTCScene initializeScene(RTCDevice device)
 
     if (vertices && indices)
     {
-        vertices[0] = 0.f; vertices[1] = 0.f; vertices[2] = 0.f;
-        vertices[3] = 1.f; vertices[4] = 0.f; vertices[5] = 0.f;
-        vertices[6] = 0.f; vertices[7] = 1.f; vertices[8] = 0.f;
+        // x               y                  z
+        vertices[0] = 0.f; vertices[1] = 0.f; vertices[2] = 1.f;
+        vertices[3] = 1.f; vertices[4] = 0.f; vertices[5] = 1.f;
+        vertices[6] = 0.f; vertices[7] = 1.f; vertices[8] = 1.f;
 
         indices[0] = 0; indices[1] = 1; indices[2] = 2;
     }
@@ -97,9 +101,7 @@ RTCScene initializeScene(RTCDevice device)
  * Cast a single ray with origin (ox, oy, oz) and direction
  * (dx, dy, dz).
  */
-void castRay(RTCScene scene,
-    float ox, float oy, float oz,
-    float dx, float dy, float dz)
+bool castRay(RTCScene scene, Vector vector)
 {
     /*
      * The intersect context can be used to set intersection
@@ -115,12 +117,12 @@ void castRay(RTCScene scene,
      * for rtcIntersect1() for details.
      */
     struct RTCRayHit rayhit;
-    rayhit.ray.org_x = ox;
-    rayhit.ray.org_y = oy;
-    rayhit.ray.org_z = oz;
-    rayhit.ray.dir_x = dx;
-    rayhit.ray.dir_y = dy;
-    rayhit.ray.dir_z = dz;
+    rayhit.ray.org_x = vector.ox;
+    rayhit.ray.org_y = vector.oy;
+    rayhit.ray.org_z = vector.oz;
+    rayhit.ray.dir_x = vector.dx;
+    rayhit.ray.dir_y = vector.dy;
+    rayhit.ray.dir_z = vector.dz;
     rayhit.ray.tnear = 0;
     rayhit.ray.tfar = std::numeric_limits<float>::infinity();
     rayhit.ray.mask = -1;
@@ -134,7 +136,6 @@ void castRay(RTCScene scene,
      */
     rtcIntersect1(scene, &context, &rayhit);
 
-    printf("%f, %f, %f: ", ox, oy, oz);
     if (rayhit.hit.geomID != RTC_INVALID_GEOMETRY_ID)
     {
         /* Note how geomID and primID identify the geometry we just hit.
@@ -148,9 +149,10 @@ void castRay(RTCScene scene,
             rayhit.hit.geomID,
             rayhit.hit.primID,
             rayhit.ray.tfar);
+
+        return true;
     }
-    else
-        printf("Did not find any intersection.\n");
+    return false;
 }
 
 int main()
@@ -166,11 +168,44 @@ int main()
     RTCDevice device = initializeDevice();
     RTCScene scene = initializeScene(device);
 
+    auto image = new Image(256, 256);
+
+    for (unsigned int x = 0; x < image->width; ++x) {
+        float ox = (float)x / (float)image->width;
+
+        for (unsigned int y = 0; y < image->height; ++y) {
+            // Build vector coming from x, y
+            float oy = (float)y / (float)image->height;
+
+            // Intersect vector
+            Vector ray{
+                ox, oy, -1,
+                ox, oy, 10000,
+            };
+
+            auto hit = castRay(scene, ray);
+
+
+            // Write vector result
+            if (hit) {
+                image->writePixel(x, y, Color { 125, 125 });
+            } else {
+                image->writePixel(x, y, Color { 0, 0, 125 });
+            }
+
+            if (!hit && x == 255 && y == 0) {
+                image->writePixel(x, y, Color { 255, 255, 255 });
+            }
+        }
+    }
+
+    image->save("test.png");
+
     /* This will hit the triangle at t=1. */
-    castRay(scene, 0, 0, -1, 0, 0, 1);
+    // castRay(scene, 0, 0, -1, 0, 0, 1);
 
     /* This will not hit anything. */
-    castRay(scene, 1, 1, -1, 0, 0, 1);
+    // castRay(scene, 1, 1, -1, 0, 0, 1);
 
     /* Though not strictly necessary in this example, you should
     * always make sure to release resources allocated through Embree. */
