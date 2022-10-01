@@ -1,6 +1,7 @@
 #pragma once
 
 #include <vector>
+#include <memory>
 
 #include <embree3/rtcore.h>
 
@@ -15,7 +16,7 @@ public:
     
     /// Adds model to the scene
     /// - Parameter model: Model to be added
-    void addModel(Model *model);
+    void addModel(std::shared_ptr<Model> model);
     
     /// Commits scene with models attached
     void commit();
@@ -24,5 +25,5 @@ public:
     
     ~Scene();
 private:
-    std::vector<Model*> _models;
+    std::vector<std::shared_ptr<Model>> _models;
 };

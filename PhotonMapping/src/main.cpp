@@ -4,7 +4,7 @@
 #include <limits>
 #include <stdio.h>
 #include <filesystem>
-
+#include <memory>
 #include <iostream>
 
 #include "assimp/Importer.hpp"      // C++ importer interface
@@ -96,9 +96,9 @@ int main()
     /* Initialization. All of this may fail, but we will be notified by
      * our errorFunction. */
     RTCDevice device = initializeDevice();
-    Scene* scene = new Scene(device);
+    auto scene = std::make_unique<Scene>(device);
     
-    Model* model = new Model("./assets/cubito.obj", device);
+    auto model = std::make_shared<Model>("./assets/cubito.obj", device);
     
     scene->addModel(model);
     scene->commit();
@@ -131,8 +131,6 @@ int main()
 
     image->save("test.png");
 
-    delete scene;
-    
     rtcReleaseDevice(device);
     
     return 0;

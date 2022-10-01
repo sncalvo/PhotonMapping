@@ -4,7 +4,7 @@ Scene::Scene(RTCDevice device) {
     scene = rtcNewScene(device);
 }
 
-void Scene::addModel(Model *model) {
+void Scene::addModel(std::shared_ptr<Model> model) {
     _models.push_back(model);
 }
 
