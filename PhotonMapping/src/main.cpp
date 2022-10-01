@@ -145,10 +145,6 @@ bool castRay(RTCScene scene, Vector vector)
          * get geomID=0 / primID=0 for all hits.
          * There is also instID, used for instancing. See
          * the instancing tutorials for more information */
-        // printf("Found intersection on geometry %d, primitive %d at tfar=%f\n",
-         //    rayhit.hit.geomID,
-          //   rayhit.hit.primID,
-          //  rayhit.ray.tfar);
 
         return true;
     }
@@ -161,7 +157,7 @@ int main()
 
     std::cout << std::filesystem::current_path() << std::endl;
 
-    const Object* object = new Object("./assets/colored_cow.obj");
+    const Object* _object = new Object("./assets/colored_cow.obj");
 
     /* Initialization. All of this may fail, but we will be notified by
     * our errorFunction. */
@@ -180,7 +176,7 @@ int main()
             // Intersect vector
             Vector ray{
                 ox, oy, -1,
-                ox, oy, 10000,
+                0., 0., 1.
             };
 
             auto hit = castRay(scene, ray);
@@ -191,10 +187,6 @@ int main()
                 image->writePixel(x, y, Color { 125, 125 });
             } else {
                 image->writePixel(x, y, Color { 0, 0, 125 });
-            }
-
-            if (!hit && x == 255 && y == 0) {
-                image->writePixel(x, y, Color { 255, 255, 255 });
             }
         }
     }
