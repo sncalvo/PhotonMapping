@@ -1,7 +1,7 @@
 workspace "PhotonMapping"
   configurations { "Debug", "Release" }
   platforms { "x64" }
-
+  debugdir "%{cfg.targetdir}"
   location "build"
 
 outputdir = "%{cfg.buildcfg}-%{cfg.system}"
@@ -33,7 +33,7 @@ project "PhotonMapping"
   filter "system:windows"
     postbuildcommands "{COPYFILE} %{wks.location}../%{prj.name}/vendor/libraries/%{cfg.system}/*.dll %{cfg.targetdir}"
 
-  postbuildcommands "{COPYFILE} %{wks.location}../%{prj.name}/assets/* %{cfg.targetdir}"
+  postbuildcommands "{COPY} %{wks.location}../%{prj.name}/assets %{cfg.targetdir}/assets/"
 
   filter { "action:make" }
 

@@ -145,10 +145,10 @@ bool castRay(RTCScene scene, Vector vector)
          * get geomID=0 / primID=0 for all hits.
          * There is also instID, used for instancing. See
          * the instancing tutorials for more information */
-        printf("Found intersection on geometry %d, primitive %d at tfar=%f\n",
-            rayhit.hit.geomID,
-            rayhit.hit.primID,
-            rayhit.ray.tfar);
+        // printf("Found intersection on geometry %d, primitive %d at tfar=%f\n",
+         //    rayhit.hit.geomID,
+          //   rayhit.hit.primID,
+          //  rayhit.ray.tfar);
 
         return true;
     }
