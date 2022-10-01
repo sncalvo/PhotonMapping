@@ -11,9 +11,10 @@
 #include "assimp/scene.h"           // Output data structure
 #include "assimp/postprocess.h"     // Post processing flags
 
-#include "./Model.hpp"
-#include "./Image.hpp"
-#include "./Vector.hpp"
+#include "Model.hpp"
+#include "Scene.hpp"
+#include "Image.hpp"
+#include "Vector.hpp"
 
 void errorFunction(void* userPtr, enum RTCError error, const char* str)
 {
@@ -29,17 +30,6 @@ RTCDevice initializeDevice()
     
     rtcSetDeviceErrorFunction(device, errorFunction, NULL);
     return device;
-}
-
-RTCScene initializeScene(RTCDevice device, const Model* model)
-{
-    RTCScene scene = rtcNewScene(device);
-    
-    model->commit(scene);
-
-    rtcCommitScene(scene);
-    
-    return scene;
 }
 
 /*
@@ -106,9 +96,12 @@ int main()
     /* Initialization. All of this may fail, but we will be notified by
      * our errorFunction. */
     RTCDevice device = initializeDevice();
-    const Model* model = new Model("./assets/cubito.obj", device);
+    Scene* scene = new Scene(device);
     
-    RTCScene scene = initializeScene(device, model);
+    Model* model = new Model("./assets/cubito.obj", device);
+    
+    scene->addModel(model);
+    scene->commit();
     
     auto image = new Image(256, 256);
     
@@ -125,8 +118,7 @@ int main()
                 0., 0., 1.
             };
             
-            auto hit = castRay(scene, ray);
-            
+            auto hit = castRay(scene->scene, ray);
             
             // Write vector result
             if (hit) {
@@ -138,10 +130,9 @@ int main()
     }
 
     image->save("test.png");
+
+    delete scene;
     
-    /* Though not strictly necessary in this example, you should
-     * always make sure to release resources allocated through Embree. */
-    rtcReleaseScene(scene);
     rtcReleaseDevice(device);
     
     return 0;
