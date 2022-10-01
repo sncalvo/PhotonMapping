@@ -1,3 +1,5 @@
+#pragma once
+
 #include "FreeImage/FreeImage.h"
 
 #include "Color.hpp"
