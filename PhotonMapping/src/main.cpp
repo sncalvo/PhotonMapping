@@ -59,21 +59,62 @@ bool castRay(RTCScene scene, Vector vector)
      * intersects a single ray with the scene.
      */
     rtcIntersect1(scene, &context, &rayhit);
-    
-    if (rayhit.hit.geomID != RTC_INVALID_GEOMETRY_ID)
-    {
-        /* Note how geomID and primID identify the geometry we just hit.
-         * We could use them here to interpolate geometry information,
-         * compute shading, etc.
-         * Since there is only a single triangle in this scene, we will
-         * get geomID=0 / primID=0 for all hits.
-         * There is also instID, used for instancing. See
-         * the instancing tutorials for more information */
-        
-        return true;
-    }
-    
-    return false;
+
+    return rayhit;
+}
+
+glm::vec3 renderPixelSample(
+  float x,
+  float y,
+  const Camera &camera,
+  const Image& image,
+  const Scene& scene
+)
+{
+  auto radiance = glm::vec3(0.f);
+
+  // Build vector coming from x, y
+  auto rayDirection = camera->pixelRayDirection(x, y, image->width, image->height);
+
+  Vector ray{
+      camera->origin.x, camera->origin.y, camera->origin.z,
+      rayDirection.x, rayDirection.y, rayDirection.z
+  };
+
+  auto hit = castRay(scene->scene, ray);
+
+  /* Note how geomID and primID identify the geometry we just hit.
+   * We could use them here to interpolate geometry information,
+   * compute shading, etc.
+   * Since there is only a single triangle in this scene, we will
+   * get geomID=0 / primID=0 for all hits.
+   * There is also instID, used for instancing. See
+   * the instancing tutorials for more information */
+
+  // If nothing hit, use lights
+  if (hit.hit.geomID == RTC_INVALID_GEOMETRY_ID)
+  {
+      for (unsigned int i = 0; i < scene->getNumLights(); i++)
+      {
+        const Light* light = scene->getLight(i);
+        radiance = radiance + light.value;
+      }
+  }
+  
+  return false;
+}
+
+glm::vec3 renderPixel(
+  float x,
+  float y,
+  const Camera &camera,
+  const Image& image,
+  const Scene& scene
+)
+{
+  // TODO: Add more than one sample per pixel
+
+  return renderPixelSample(x, y, camera);
 }
 
 int main()
@@ -92,16 +133,8 @@ int main()
     
     for (unsigned int x = 0; x < image->width; ++x) {
         for (unsigned int y = 0; y < image->height; ++y) {
-            // Build vector coming from x, y
-            auto ray_direction = camera->pixelRayDirection(x, y, image->width, image->height);
+            renderPixel(x, y, camera, image, scene);
 
-            Vector ray{
-                camera->origin.x, camera->origin.y, camera->origin.z,
-                ray_direction.x, ray_direction.y, ray_direction.z
-            };
-            
-            auto hit = castRay(scene->scene, ray);
-            
             if (hit) {
                 image->writePixel(x, y, Color { 125, 125 });
             } else {
