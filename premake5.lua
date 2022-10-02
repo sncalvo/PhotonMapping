@@ -38,13 +38,18 @@ project "PhotonMapping"
 
     postbuildcommands "{COPYFILE} %{wks.location}/../%{prj.name}/vendor/libraries/%{cfg.system}/*.dylib* %{cfg.targetdir}"
     postbuildcommands "{COPY} %{wks.location}/../%{prj.name}/assets %{cfg.targetdir}/"
-
-    runpathdirs { "%{cfg.targetdir}" }
   end
+
+  runpathdirs { "%{cfg.targetdir}" }
 
   if os.host() == "windows" then
     postbuildcommands "{COPYFILE} %{wks.location}../%{prj.name}/vendor/libraries/%{cfg.system}/*.dll %{cfg.targetdir}"
     postbuildcommands "{COPY} %{wks.location}../%{prj.name}/assets %{cfg.targetdir}/assets/"
+  end
+
+  if os.host() == "linux" then
+    postbuildcommands "{COPYFILE} %{wks.location}/../%{prj.name}/vendor/libraries/%{cfg.system}/*.so* %{cfg.targetdir}"
+    postbuildcommands "{COPY} %{wks.location}/../%{prj.name}/assets %{cfg.targetdir}/"
   end
 
   filter { "action:make" }
