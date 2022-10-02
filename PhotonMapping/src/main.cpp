@@ -5,6 +5,7 @@
 
 #include "Model.hpp"
 #include "Scene.hpp"
+#include "Camera.hpp"
 #include "Image.hpp"
 #include "Vector.hpp"
 
@@ -79,24 +80,24 @@ int main()
 {
     RTCDevice device = initializeDevice();
     auto scene = std::make_unique<Scene>(device);
-    
+
     auto model = std::make_shared<Model>("./assets/cubito.obj", device);
     
     scene->addModel(model);
     scene->commit();
     
-    auto image = new Image(256, 256);
+    auto image = new Image(1920, 1080);
+    const auto aspectRatio = (float)image->width / (float)image->height;
+    auto camera = std::make_unique<Camera>(aspectRatio, 1.f);
     
     for (unsigned int x = 0; x < image->width; ++x) {
-        float ox = (float)x / (float)image->width;
-        
         for (unsigned int y = 0; y < image->height; ++y) {
             // Build vector coming from x, y
-            float oy = (float)y / (float)image->height;
+            auto ray_direction = camera->pixelRayDirection(x, y, image->width, image->height);
 
             Vector ray{
-                ox, oy, -1,
-                0., 0., 1.
+                camera->origin.x, camera->origin.y, camera->origin.z,
+                ray_direction.x, ray_direction.y, ray_direction.z
             };
             
             auto hit = castRay(scene->scene, ray);
