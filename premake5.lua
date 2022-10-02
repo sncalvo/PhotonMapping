@@ -38,9 +38,11 @@ project "PhotonMapping"
 
     postbuildcommands "{COPYFILE} %{wks.location}/../%{prj.name}/vendor/libraries/%{cfg.system}/*.dylib* %{cfg.targetdir}"
     postbuildcommands "{COPY} %{wks.location}/../%{prj.name}/assets %{cfg.targetdir}/"
+
+    runpathdirs { "%{cfg.targetdir}" }
   end
 
-  if os.host() == "winows" then
+  if os.host() == "windows" then
     postbuildcommands "{COPYFILE} %{wks.location}../%{prj.name}/vendor/libraries/%{cfg.system}/*.dll %{cfg.targetdir}"
     postbuildcommands "{COPY} %{wks.location}../%{prj.name}/assets %{cfg.targetdir}/assets/"
   end
@@ -54,6 +56,3 @@ project "PhotonMapping"
   filter "configurations:Release"
     defines { "NDEBUG" }
     optimize "On"
-
-  filter "system:macosx"
-    runpathdirs { "%{cfg.targetdir}" }

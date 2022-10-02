@@ -44,5 +44,4 @@ private:
     const float _viewportWidth;
 
     const float _focalLength = 1.f;
-    const glm::vec3 _origin = glm::vec3{0.f};
 };
