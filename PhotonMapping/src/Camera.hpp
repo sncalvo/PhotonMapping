@@ -4,7 +4,7 @@
 
 class Camera {
 public:
-    glm::vec3 horizontal, vertical, lowerLeftCorner, origin{0.f, 0.f, -1.f};
+    glm::vec3 horizontal, vertical, lowerLeftCorner, origin;
     
     /// Calculates ray direction for given pixel and the width and height for the image
     /// - Parameters:
@@ -12,7 +12,7 @@ public:
     ///   - row: y coordinate for the pixel in image that is being rendered
     ///   - width: width of the image (i.e. 1920 in an image of 1920x1080)
     ///   - height: height of the image (i.e. 1080 in an image of 1920x1080)
-    inline auto pixelRayDirection(uint_fast32_t column, uint_fast32_t row, uint_fast32_t width, uint_fast32_t height) {
+    inline auto pixelRayDirection(uint_fast32_t column, uint_fast32_t row, uint_fast32_t width, uint_fast32_t height) const {
         // Take u to range of [0-1]
         auto u = float(column) / float(width - 1);
         // Take v to range of [0-1]
@@ -28,13 +28,13 @@ public:
     ///   - aspectRatio: aspect ratio for the camera
     ///   - height: height modifier
     ///   - focalLength: focal length for the camera (how much zoom there is, causing the image to be distorted)
-    Camera(float aspectRatio, float height, float focalLength);
+    Camera(float aspectRatio, float height, float focalLength, glm::vec3 origin);
     
     /// Constructs a camera using aspect ratio and focal length
     /// - Parameters:
     ///   - aspectRatio: aspect ratio for the camera
     ///   - focalLength: focal length for the camera (how much zoom there is, causing the image to be distorted)
-    Camera(float aspectRatio, float focalLength) : Camera(aspectRatio, 2.f, focalLength) {};
+  Camera(float aspectRatio, float focalLength) : Camera(aspectRatio, 2.f, focalLength, {0.f, 0.f, -1.f}) {};
 
 private:
     glm::vec3 _calculateLowerLeftCorner(glm::vec3 origin, glm::vec3 horizontal, glm::vec3 vertical, float focalLength);

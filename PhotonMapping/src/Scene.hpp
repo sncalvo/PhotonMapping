@@ -6,6 +6,7 @@
 #include <embree3/rtcore.h>
 
 #include "Model.hpp"
+#include "Light.hpp"
 
 /// Class representing scene with list of models
 class Scene {
@@ -20,14 +21,17 @@ public:
   
   /// Adds light to the scene
   /// - Parameter light: Light to be added
-  void addLight(std::shared_ptr<Light> light);
+  void addLight(Light light);
 
   /// Returns number of lights in the scene
-  unsigned int getNumLights();
+  uint_fast32_t getNumLights() const;
 
   /// Returns the ith light in the scene
   /// - Parameter index: Index of the light to return
-  Light *getLight(unsigned int index);
+  Light getLight(uint_fast32_t index) const;
+
+  /// Returns all lights in the scene
+  std::vector<Light> getLights() const;
 
   /// Commits scene with models attached
   void commit();
@@ -35,9 +39,8 @@ public:
   RTCScene scene;
   
   ~Scene();
+
 private:
   std::vector<std::shared_ptr<Model>> _models;
-
-  unsigned int _numLights;
-  std::vector<std::shared_ptr<Light>> _lights;
+  std::vector<Light> _lights;
 };

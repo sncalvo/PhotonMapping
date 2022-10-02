@@ -8,16 +8,20 @@ void Scene::addModel(std::shared_ptr<Model> model) {
   _models.push_back(model);
 }
 
-void Scene::addLight(std::shared_ptr<Light> light) {
+void Scene::addLight(Light light) {
   _lights.push_back(light);
 }
 
-unsigned int Scene::getNumLights() {
-  return _numLights;
+uint_fast32_t Scene::getNumLights() const {
+  return _lights.size();
 }
 
-Light *Scene::getLight(unsigned int index) {
+Light Scene::getLight(unsigned int index) const {
   return _lights.at(index);
+}
+
+std::vector<Light> Scene::getLights() const {
+  return _lights;
 }
 
 void Scene::commit() {
