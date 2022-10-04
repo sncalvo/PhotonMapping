@@ -1,6 +1,7 @@
 #pragma once
 
 #include <vector>
+#include <unordered_map>
 #include <memory>
 
 #include <embree3/rtcore.h>
@@ -35,12 +36,16 @@ public:
 
   /// Commits scene with models attached
   void commit();
-  
+
+  /// Returns material for the geometry accessed
+  Material getMaterial(RTCGeometry geometryId);
+
   RTCScene scene;
   
   ~Scene();
 
 private:
   std::vector<std::shared_ptr<Model>> _models;
+  std::unordered_map<RTCGeometry, Material> _materials;
   std::vector<Light> _lights;
 };

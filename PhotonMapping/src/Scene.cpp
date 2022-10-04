@@ -6,6 +6,10 @@ Scene::Scene(RTCDevice device) {
 
 void Scene::addModel(std::shared_ptr<Model> model) {
   _models.push_back(model);
+
+  auto modelMaterialMap = model->getMaterialsMap();
+
+  _materials.insert(modelMaterialMap.begin(), modelMaterialMap.end());
 }
 
 void Scene::addLight(Light light) {
@@ -30,6 +34,10 @@ void Scene::commit() {
   }
   
   rtcCommitScene(scene);
+}
+
+Material Scene::getMaterial(RTCGeometry geometryId) {
+  return _materials[geometryId];
 }
 
 Scene::~Scene() {
