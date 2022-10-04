@@ -12,7 +12,7 @@ void Model::commit(RTCScene scene) const  {
   }
 }
 
-std::unordered_map<RTCGeometry, Material> Model::getMaterialsMap() const {
+std::unordered_map<unsigned int, Material> Model::getMaterialsMap() const {
   return _materials;
 }
 

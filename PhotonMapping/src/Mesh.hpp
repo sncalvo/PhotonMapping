@@ -19,7 +19,6 @@ class Mesh {
 public:
   std::vector<Vertex> vertices;
   std::vector<unsigned int> indices;
-  RTCGeometry geometryId;
 
   /// Constructs a mesh from verticies and indices. Also needs a device to create the geometries for embree.
   /// - Parameters:
@@ -33,7 +32,7 @@ public:
   void commit(RTCScene scene);
 
   /// Returns pair of materiak and geometry id allowing to add it to maps
-  std::pair<RTCGeometry, Material> getMaterialPair() const;
+  std::pair<unsigned int, Material> getMaterialPair() const;
 
 private:
   /// render data

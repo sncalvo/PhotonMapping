@@ -2,6 +2,8 @@
 
 #include <iostream>
 
+unsigned int lastGeometryID = 0;
+
 Mesh::Mesh(std::vector<Vertex> vertices, std::vector<unsigned int> indices, RTCDevice device) {
   this->vertices = vertices;
   this->indices = indices;
@@ -9,8 +11,11 @@ Mesh::Mesh(std::vector<Vertex> vertices, std::vector<unsigned int> indices, RTCD
   _setupMesh(device);
 }
 
-std::pair<RTCGeometry, Material> Mesh::getMaterialPair() const {
-  return { _geometry, _material };
+std::pair<unsigned int, Material> Mesh::getMaterialPair() const {
+  // NOTE: THIS IS NOT MULTI THREAD SAFE
+  // THERE IS NO DOC ON HOW GEOMETRY ID IS ASSIGNED. BUT THERE IS SOME EXAMPLE WHERE THEY JUST USE CONSECUTIVE NUMBERS
+  // https://github.com/embree/embree/blob/master/tutorials/user_geometry/user_geometry_device.cpp
+  return { lastGeometryID++, _material };
 }
 
 void Mesh::_setupMesh(RTCDevice device) {

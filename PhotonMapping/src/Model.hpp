@@ -26,12 +26,12 @@ public:
 
   /// Returns material map of geometry id and material for easy search
   /// - Parameter scene: scene used to commit meshes
-  std::unordered_map<RTCGeometry, Material> getMaterialsMap() const;
+  std::unordered_map<unsigned int, Material> getMaterialsMap() const;
 
 private:
   RTCDevice _device;
   std::vector<Mesh> _meshes;
-  std::unordered_map<RTCGeometry, Material> _materials;
+  std::unordered_map<unsigned int, Material> _materials;
 
   void _loadModel(std::string const &path);
 

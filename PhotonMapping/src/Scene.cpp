@@ -36,8 +36,16 @@ void Scene::commit() {
   rtcCommitScene(scene);
 }
 
-Material Scene::getMaterial(RTCGeometry geometryId) {
+Material Scene::getMaterial(unsigned int geometryId) {
   return _materials[geometryId];
+}
+
+void Scene::setCamera(std::shared_ptr<Camera> camera) {
+  _camera = camera;
+}
+
+std::shared_ptr<Camera> Scene::getCamera() {
+  return _camera;
 }
 
 Scene::~Scene() {
