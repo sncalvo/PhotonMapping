@@ -147,12 +147,12 @@ int main()
   scene->addModel(model);
   scene->commit();
   scene->addLight(Light {
-    glm::vec3 {0.f, 1.8f, -1.f},
+    glm::vec3 {0.f, 0.5f, 0.f},
     glm::vec3 {1.f, 1.f, 1.f},
     1.f,
-    1.f,
-    0.09f,
-    0.032f,
+    0.f,  // 1.f,
+    0.f,  // 0.09f,
+    0.f  // 0.032f,
   });
 
   auto image = new Image(1920, 1080);
