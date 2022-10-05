@@ -9,14 +9,11 @@ struct Texture {
   std::string path;
 };
 
-enum MaterialType {
-  Diffuse, Specular, Transparent
-};
-
 struct Material {
   Texture texture;
   glm::vec3 color;
 
-  MaterialType type;
   // TODO: Probably add more stuff for ray tracing and photon mapping like material type, different color profiles
+  float reflection;
+  float transparency;
 };

@@ -15,6 +15,7 @@ struct Intersection {
   Material material;
   glm::vec3 normal;
   glm::vec3 position;
+  glm::vec3 direction;
   float distance;
   glm::vec2 uv;
 };
@@ -37,9 +38,13 @@ public:
 private:
   Color3f _renderPixelSample(uint_fast32_t x, uint_fast32_t y, uint_fast32_t width, uint_fast32_t height);
 
+  Color3f _calculateColor(glm::vec3 origin, glm::vec3 direction, unsigned int depth);
+
   std::optional<Intersection> _castRay(glm::vec3 origin, glm::vec3 direction);
 
   Color3f _renderDiffuse(Intersection &intersection);
+  Color3f _renderSpecular(Intersection &intersection, unsigned int depth);
+  Color3f _renderTransparent(Intersection &intersection, unsigned int depth);
 
   std::shared_ptr<Scene> _scene;
 };

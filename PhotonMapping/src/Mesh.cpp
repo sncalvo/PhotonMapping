@@ -49,7 +49,9 @@ void Mesh::_setupMesh(RTCDevice device) {
   // TODO: Change this to the actual texture
   _material = Material {
     Texture { 0, "", "" },
-    glm::vec3{0.7f, 0.7f, 0.7f}
+    glm::vec3{0.7f, 0.7f, 0.7f},
+    0.3,
+    0.0,
   };
 }
 

@@ -3,6 +3,8 @@
 #include "Utils.hpp"
 #include <glm/gtx/norm.hpp>
 
+constexpr auto MAX_DEPTH = 5;
+
 float attenuation(float distance, const Light& light) {
   return 1.f / (light.constantDecay + light.linearDecay * distance + light.quadraticDecay * glm::pow(distance, 2.f));
 }
@@ -30,7 +32,11 @@ glm::vec3 Renderer::_renderPixelSample(
   auto camera = _scene->getCamera();
   auto direction = camera->pixelRayDirection(x, y, width, height);
 
-  auto result = _castRay(camera->origin, direction);
+  return _calculateColor(camera->origin, direction, MAX_DEPTH);
+}
+
+Color3f Renderer::_calculateColor(glm::vec3 origin, glm::vec3 direction, unsigned int depth) {
+  auto result = _castRay(origin, direction);
 
   if (!result.has_value()) {
     return _scene->ambient;
@@ -40,16 +46,14 @@ glm::vec3 Renderer::_renderPixelSample(
 
   Color3f color;
 
-  switch (intersection.material.type) {
-    case Diffuse:
-      color = _renderDiffuse(intersection);
-      break;
-    case Specular:
-      // TODO: Implement specular case
-      break;
-    case Transparent:
-      // TODO: Implement transparent case
-      break;
+  color = _renderDiffuse(intersection);
+
+  if (intersection.material.reflection > glm::epsilon<float>()) {
+    color += _renderSpecular(intersection, depth - 1);
+  }
+
+  if (intersection.material.transparency > glm::epsilon<float>()) {
+    color += _renderTransparent(intersection, depth - 1);
   }
 
   return color;
@@ -74,6 +78,11 @@ std::optional<Intersection> Renderer::_castRay(glm::vec3 origin, glm::vec3 direc
       rayHit.ray.org_x + rayHit.ray.dir_x * rayHit.ray.tfar,
       rayHit.ray.org_y + rayHit.ray.dir_y * rayHit.ray.tfar,
       rayHit.ray.org_z + rayHit.ray.dir_z * rayHit.ray.tfar
+    },
+    {
+      rayHit.ray.dir_x,
+      rayHit.ray.dir_y,
+      rayHit.ray.dir_z
     },
     rayHit.ray.tfar,
     {
@@ -112,4 +121,22 @@ Color3f Renderer::_renderDiffuse(Intersection &intersection) {
   }
 
   return color;
+}
+
+Color3f Renderer::_renderSpecular(Intersection &intersection, unsigned int depth) {
+  if (depth == 0) {
+    return Color3f {0.f};
+  }
+  // Not sure why the -1000.0f. This was taken from the last's year ray tracing
+  auto origin = intersection.position - 1000.f * glm::vec3(glm::epsilon<float>()) * intersection.direction;
+  auto reflectionDirection = glm::normalize(glm::reflect(intersection.direction, intersection.normal));
+
+  auto color = _calculateColor(origin, reflectionDirection, depth - 1) * intersection.material.reflection;
+
+  return color;
+}
+
+Color3f Renderer::_renderTransparent(Intersection &intersection, unsigned int depth) {
+  // TODO: Implement transparent
+  return Color3f{ 0.4f };
 }
