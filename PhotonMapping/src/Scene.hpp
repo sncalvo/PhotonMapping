@@ -25,13 +25,6 @@ public:
   /// - Parameter light: Light to be added
   void addLight(Light light);
 
-  /// Returns number of lights in the scene
-  uint_fast32_t getNumLights() const;
-
-  /// Returns the ith light in the scene
-  /// - Parameter index: Index of the light to return
-  Light getLight(uint_fast32_t index) const;
-
   /// Returns all lights in the scene
   std::vector<Light> getLights() const;
 

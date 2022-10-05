@@ -97,7 +97,7 @@ std::optional<Intersection> Renderer::_castRay(glm::vec3 origin, glm::vec3 direc
 Color3f Renderer::_renderDiffuse(Intersection &intersection) {
   Color3f color{ 0.f };
   for (const auto light : _scene->getLights()) {
-    auto directionToLight = light.position - intersection.position;
+    auto directionToLight = glm::normalize(light.position - intersection.position);
 
     auto shadowRayHit = rtcRayFrom(intersection.position, directionToLight);
 
@@ -108,7 +108,8 @@ Color3f Renderer::_renderDiffuse(Intersection &intersection) {
 
     // For some reason, >= 0 means we reached light. tfar = -inf if object is occluded
     if (shadowRayHit.ray.tfar >= 0.f) {
-      auto directionModifier = glm::dot(intersection.normal, directionToLight);
+      auto intersectionNormal = glm::normalize(intersection.normal);
+      auto directionModifier = glm::dot(intersectionNormal, directionToLight);
       // TODO: We have UVs, so we could in theory use a texture here
       // Note that the UVs are for the object coordinates, but could not match coordinates in actual model
       auto diffuse = intersection.material.color * light.color * std::max(directionModifier, 0.f);

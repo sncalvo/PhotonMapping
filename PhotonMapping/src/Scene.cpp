@@ -16,14 +16,6 @@ void Scene::addLight(Light light) {
   _lights.push_back(light);
 }
 
-uint_fast32_t Scene::getNumLights() const {
-  return _lights.size();
-}
-
-Light Scene::getLight(unsigned int index) const {
-  return _lights.at(index);
-}
-
 std::vector<Light> Scene::getLights() const {
   return _lights;
 }

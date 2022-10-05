@@ -36,14 +36,14 @@ int main()
   RTCDevice device = initializeDevice();
   auto scene = std::make_shared<Scene>(device);
 
-  auto model = std::make_shared<Model>("./assets/cubito.obj", device);
+  auto model = std::make_shared<Model>("./assets/cube.obj", device);
 
   scene->addModel(model);
   scene->commit();
   scene->addLight(Light {
     glm::vec3 {0.f, 0.0f, 0.f},
     glm::vec3 {1.f, 1.f, 1.f},
-    10.f,
+    1.f,
     1.f,
     0.09f,
     0.032f,
