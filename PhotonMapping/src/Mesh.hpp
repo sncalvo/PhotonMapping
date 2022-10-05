@@ -31,7 +31,7 @@ public:
   /// - Parameter scene: ray tracing scene that will contain the geometries
   void commit(RTCScene scene);
 
-  /// Returns pair of materiak and geometry id allowing to add it to maps
+  /// Returns pair of material and geometry id allowing to add it to maps
   std::pair<unsigned int, Material> getMaterialPair() const;
 
 private:

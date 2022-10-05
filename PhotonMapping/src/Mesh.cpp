@@ -39,7 +39,7 @@ void Mesh::_setupMesh(RTCDevice device) {
   for (unsigned int i = 0; i < vertices.size(); ++i) {
     vertexBuffer[i * 3] = vertices[i].Position.x;
     vertexBuffer[i * 3 + 1] = vertices[i].Position.y;
-    vertexBuffer[i * 3 + 2] = vertices[i].Position.z + 2;
+    vertexBuffer[i * 3 + 2] = vertices[i].Position.z;
   }
 
   for (unsigned int i = 0; i < indices.size(); ++i) {
@@ -50,7 +50,7 @@ void Mesh::_setupMesh(RTCDevice device) {
   _material = Material {
     Texture { 0, "", "" },
     glm::vec3{0.7f, 0.7f, 0.7f},
-    0.3,
+    1.0,
     0.0,
   };
 }

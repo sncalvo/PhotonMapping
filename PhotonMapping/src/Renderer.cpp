@@ -107,7 +107,7 @@ Color3f Renderer::_renderDiffuse(Intersection &intersection) {
     rtcOccluded1(_scene->scene, &context, &shadowRayHit.ray);
 
     // For some reason, >= 0 means we reached light. tfar = -inf if object is occluded
-    if (shadowRayHit.ray.tfar >= 0.f) {
+    if (shadowRayHit.ray.tfar != -std::numeric_limits<float>::infinity()) {
       auto intersectionNormal = glm::normalize(intersection.normal);
       auto directionModifier = glm::dot(intersectionNormal, directionToLight);
       // TODO: We have UVs, so we could in theory use a texture here
@@ -129,8 +129,8 @@ Color3f Renderer::_renderSpecular(Intersection &intersection, unsigned int depth
     return Color3f {0.f};
   }
   // Not sure why the -1000.0f. This was taken from the last's year ray tracing
-  auto origin = intersection.position - 1000.f * glm::vec3(glm::epsilon<float>()) * intersection.direction;
-  auto reflectionDirection = glm::normalize(glm::reflect(intersection.direction, intersection.normal));
+  auto origin = intersection.position;
+  auto reflectionDirection = glm::normalize(glm::reflect(glm::normalize(intersection.direction), glm::normalize(intersection.normal)));
 
   auto color = _calculateColor(origin, reflectionDirection, depth - 1) * intersection.material.reflection;
 
