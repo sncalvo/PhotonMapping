@@ -6,6 +6,29 @@
 #include "Vector.hpp"
 #include "Light.hpp"
 
+inline auto rtcRayFrom(glm::vec3 origin, glm::vec3 direction, float tfar) {
+  struct RTCRayHit shadowRayHit;
+
+  shadowRayHit.ray.org_x = origin.x;
+  shadowRayHit.ray.org_y = origin.y;
+  shadowRayHit.ray.org_z = origin.z;
+
+  shadowRayHit.ray.dir_x = direction.x;
+  shadowRayHit.ray.dir_y = direction.y;
+  shadowRayHit.ray.dir_z = direction.z;
+
+  shadowRayHit.ray.tnear = 0.0001;
+  shadowRayHit.ray.tfar = tfar;
+
+  shadowRayHit.ray.mask = -1;
+  shadowRayHit.ray.flags = 0;
+
+  shadowRayHit.hit.geomID = RTC_INVALID_GEOMETRY_ID;
+  shadowRayHit.hit.instID[0] = RTC_INVALID_GEOMETRY_ID;
+
+  return shadowRayHit;
+}
+
 inline auto rtcRayFrom(glm::vec3 origin, glm::vec3 direction) {
   struct RTCRayHit shadowRayHit;
 
@@ -17,7 +40,7 @@ inline auto rtcRayFrom(glm::vec3 origin, glm::vec3 direction) {
   shadowRayHit.ray.dir_y = direction.y;
   shadowRayHit.ray.dir_z = direction.z;
 
-  shadowRayHit.ray.tnear = std::numeric_limits<float>::epsilon();
+  shadowRayHit.ray.tnear = 0.0001;
   shadowRayHit.ray.tfar = std::numeric_limits<float>::infinity();
 
   shadowRayHit.ray.mask = -1;
@@ -40,7 +63,7 @@ inline auto rtcRayFrom(Vector vector) {
   shadowRayHit.ray.dir_y = vector.dy;
   shadowRayHit.ray.dir_z = vector.dz;
 
-  shadowRayHit.ray.tnear = std::numeric_limits<float>::epsilon();
+  shadowRayHit.ray.tnear = 0.0001;
   shadowRayHit.ray.tfar = std::numeric_limits<float>::infinity();
 
   shadowRayHit.ray.mask = -1;
