@@ -39,10 +39,12 @@ int main()
   auto floor = std::make_shared<Model>("./assets/floor.obj", device);
   auto ball = std::make_shared<Model>("./assets/ball.obj", device);
   auto cube = std::make_shared<Model>("./assets/cube.obj", device);
+  auto sphere = std::make_shared<Model>(RTC_GEOMETRY_TYPE_SPHERE_POINT, device, glm::vec4 { 2.0f, 2.0f, 5.0f, 0.5f });
   
   scene->addModel(floor);
   scene->addModel(ball);
   scene->addModel(cube);
+  scene->addModel(sphere);
   scene->commit();
   scene->addLight(Light {
     glm::vec3 {-2.f, 2.0f, 1.f},

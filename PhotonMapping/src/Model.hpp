@@ -20,6 +20,10 @@ public:
   ///   - device: device used to generate the geometries
   Model(const std::string& objectPath, RTCDevice device);
 
+  /// Creates a model with a embree primitive
+  /// - Parameter geometryType: embree primitive type. Only supports spheres for now
+  Model(const RTCGeometryType geometryType, RTCDevice device, glm::vec4 transform);
+
   /// Commits all meshes in the scene for ray tracing
   /// - Parameter scene: scene used to commit meshes
   void commit(RTCScene scene) const;
@@ -34,6 +38,7 @@ private:
   std::unordered_map<unsigned int, Material> _materials;
 
   void _loadModel(std::string const &path);
+  void _loadPrimitive(const RTCGeometryType geometryType, glm::vec4 transform);
 
   void _processNode(aiNode *node, const aiScene *scene);
 

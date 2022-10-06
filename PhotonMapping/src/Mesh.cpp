@@ -11,6 +11,10 @@ Mesh::Mesh(std::vector<Vertex> vertices, std::vector<unsigned int> indices, RTCD
   _setupMesh(device);
 }
 
+Mesh::Mesh(const RTCGeometryType type, RTCDevice device, glm::vec4 transform) {
+  _setupPrimitive(type, device, transform);
+}
+
 std::pair<unsigned int, Material> Mesh::getMaterialPair() const {
   // NOTE: THIS IS NOT MULTI THREAD SAFE
   // THERE IS NO DOC ON HOW GEOMETRY ID IS ASSIGNED. BUT THERE IS SOME EXAMPLE WHERE THEY JUST USE CONSECUTIVE NUMBERS
@@ -50,9 +54,29 @@ void Mesh::_setupMesh(RTCDevice device) {
   _material = Material {
     Texture { 0, "", "" },
     glm::vec3{0.7f, 0.7f, 0.7f},
-    0.1,
+    0.2,
     0.0,
+    0.8,
+    1.3,
+  };
+}
+
+void Mesh::_setupPrimitive(const RTCGeometryType type, RTCDevice device, glm::vec4 transform) {
+  _geometry = rtcNewGeometry(device, type);
+
+  auto buffer = (float*)rtcSetNewGeometryBuffer(_geometry, RTC_BUFFER_TYPE_VERTEX, 0, RTC_FORMAT_FLOAT4, sizeof(float) * 4, 1);
+
+  buffer[0] = transform.x;
+  buffer[1] = transform.y;
+  buffer[2] = transform.z;
+  buffer[3] = transform.w;
+
+  _material = Material {
+    Texture { 0, "", "" },
+    glm::vec3{0.7f, 0.f, 0.f},
+    0.1,
     0.9,
+    0.0,
     1.3,
   };
 }

@@ -140,6 +140,9 @@ Color3f Renderer::_renderSpecular(Intersection &intersection, unsigned int depth
   return color;
 }
 
+unsigned int invertedNormalCount = 0;
+unsigned int nonInvertedNormalCount = 0;
+
 Color3f Renderer::_renderTransparent(Intersection &intersection, unsigned int depth) {
   if (depth == 0) {
     return Color3f { 0.f };
@@ -148,49 +151,30 @@ Color3f Renderer::_renderTransparent(Intersection &intersection, unsigned int de
   auto cosTheta = std::min(glm::dot(-intersection.direction, intersection.normal), 1.f);
   auto sinTheta = std::sqrt(1.f - cosTheta * cosTheta);
 
-  // hit.isFrontFace ? (1.f / material.refractionIndex) : material.refractionIndex;
   auto refractionRatio = intersection.material.refractionIndex;
 
   Color3f color{ 0.f };
 
-//  color += _calculateColor(
-//    intersection.position + glm::vec3(0.01) * intersection.direction,
-//    intersection.direction, depth - 1
-//  ) * intersection.material.transparency;
+  color += _calculateColor(
+    intersection.position + glm::vec3(0.01) * intersection.direction,
+    intersection.direction, depth - 1
+  ) * intersection.material.transparency;
 
-  if (refractionRatio * sinTheta <= 1.f) {
-    auto refractionPerpendicular = refractionRatio * (intersection.direction + cosTheta * intersection.normal);
-    auto refractionParallel = -glm::sqrt(
-      std::abs(1.f - glm::dot(refractionPerpendicular, refractionPerpendicular))
-    ) * intersection.normal;
-
-    auto refractionDirection = refractionPerpendicular + refractionParallel;
-    color += _calculateColor(
-      intersection.position + glm::vec3(0.001) * intersection.direction,
-      refractionDirection, depth - 1
-    ) * intersection.material.transparency;
-  }
-  /*
-  auto normalPointingToRay = hit.isFrontFace ? hit.normal : -hit.normal;
-  auto cosTheta = std::min(glm::dot(-direction, normalPointingToRay), 1.f);
-  // auto sinTheta = std::sqrt(1.f - math::square(cosTheta));
-  // auto refractionRatio = hit.isFrontFace ? (1.f / material.refractionIndex) : material.refractionIndex;
-  if (refractionRatio * sinTheta <= 1.f)
-  {
-    auto refractionPerpendicular = refractionRatio *
-    (direction + cosTheta * normalPointingToRay);
-    auto refractionParallel = -glm::sqrt(
-                                         std::abs(1.f - glm::dot(refractionPerpendicular, refractionPerpendicular))
-                                         ) * normalPointingToRay;
-    auto refractionDirection = refractionPerpendicular + refractionParallel;
-    Ray ray{
-      hit.position + 1000.f * glm::vec3(glm::epsilon<float>()) * direction,
-      refractionDirection
-    };
-    color += std::get<0>(ray.calculateColorAndMaterial(solids, depth + 1, scene)) * material.transparency;
-  }
-   */
-
+//  if (refractionRatio * sinTheta <= 1.f) {
+//    // shorturl.at/cDGZ1
+//    glm::vec3 refractionNormal = intersection.normal;
+//
+//    auto refractionPerpendicular = refractionRatio * (intersection.direction + cosTheta * refractionNormal);
+//    auto refractionParallel = -glm::sqrt(
+//      std::abs(1.f - glm::dot(refractionPerpendicular, refractionPerpendicular))
+//    ) * refractionNormal;
+//
+//    auto refractionDirection = refractionPerpendicular + refractionParallel;
+//    color += _calculateColor(
+//      intersection.position + glm::vec3(0.0001) * intersection.direction,
+//      refractionDirection, depth - 1
+//    ) * intersection.material.transparency;
+//  }
 
   return color;
 }

@@ -27,6 +27,8 @@ public:
   ///   - device: device to generate geometries
   Mesh(std::vector<Vertex> vertices, std::vector<unsigned int> indices, RTCDevice device);
 
+  Mesh(const RTCGeometryType type, RTCDevice device, glm::vec4 transform);
+
   /// Commits geometries to the ray tracing scene
   /// - Parameter scene: ray tracing scene that will contain the geometries
   void commit(RTCScene scene);
@@ -43,4 +45,5 @@ private:
 
   /// initializes all the buffer objects/arrays
   void _setupMesh(RTCDevice device);
+  void _setupPrimitive(const RTCGeometryType type, RTCDevice device, glm::vec4 transform);
 };
