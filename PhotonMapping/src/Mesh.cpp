@@ -50,8 +50,10 @@ void Mesh::_setupMesh(RTCDevice device) {
   _material = Material {
     Texture { 0, "", "" },
     glm::vec3{0.7f, 0.7f, 0.7f},
-    1.0,
+    0.1,
     0.0,
+    0.9,
+    1.3,
   };
 }
 

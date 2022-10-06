@@ -7,32 +7,47 @@
 #include "Scene.hpp"
 #include "Material.hpp"
 
-// Created this to indicate with types when we intend to use the values as color or position
+  // Created this to indicate with types when we intend to use the values as color or position
 using Color3f = glm::vec3;
 
 struct Intersection {
-  // TODO: Add material, normal, position
+    // TODO: Add material, normal, position
   Material material;
   glm::vec3 normal;
   glm::vec3 position;
   glm::vec3 direction;
   float distance;
   glm::vec2 uv;
+
+  Intersection(
+    Material material,
+    glm::vec3 normal,
+    glm::vec3 position,
+    glm::vec3 direction,
+    float distance,
+    glm::vec2 uv
+  ) :
+    material(material),
+    normal(glm::normalize(normal)),
+    position(position),
+    direction(glm::normalize(direction)),
+    distance(distance),
+    uv(uv) {}
 };
 
-/// The Renderer is responsible for creating the image and executing the photon mapping algorithm
+  /// The Renderer is responsible for creating the image and executing the photon mapping algorithm
 class Renderer {
 public:
-  /// Renders pixel for the coordinate supplied for an image with the width and height provided
-  /// - Parameters:
-  ///   - x: horizontal coordinate for the requested pixel
-  ///   - y: vertical coordinate for the requested pixel
-  ///   - width: horizontal size for the image
-  ///   - height: vertical size for the image
+    /// Renders pixel for the coordinate supplied for an image with the width and height provided
+    /// - Parameters:
+    ///   - x: horizontal coordinate for the requested pixel
+    ///   - y: vertical coordinate for the requested pixel
+    ///   - width: horizontal size for the image
+    ///   - height: vertical size for the image
   Color3f renderPixel(uint_fast32_t x, uint_fast32_t y, uint_fast32_t width, uint_fast32_t height);
 
-  /// Sets the scene used by the renderer
-  /// - Parameter scene: shared scene pointer
+    /// Sets the scene used by the renderer
+    /// - Parameter scene: shared scene pointer
   void setScene(std::shared_ptr<Scene> scene);
 
 private:

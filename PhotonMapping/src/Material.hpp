@@ -14,6 +14,9 @@ struct Material {
   glm::vec3 color;
 
   // TODO: Probably add more stuff for ray tracing and photon mapping like material type, different color profiles
+  float diffuse;
   float reflection;
   float transparency;
+
+  float refractionIndex = 0.f;
 };
