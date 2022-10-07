@@ -1,324 +1,437 @@
-///*
-// * file: KDTree.hpp
-// * author: J. Frederico Carvalho
-// *
-// * This is an adaptation of the KD-tree implementation in rosetta code
-// * https://rosettacode.org/wiki/K-d_tree
-// *
-// * It is a reimplementation of the C code using C++.  It also includes a few
-// * more queries than the original, namely finding all points at a distance
-// * smaller than some given distance to a point.
-// *
-// */
-//
-//#include <algorithm>
-//#include <cmath>
-//#include <functional>
-//#include <iterator>
-//#include <limits>
-//#include <memory>
-//#include <vector>
-//
-//#include "KDTree.hpp"
-//
-//KDNode::KDNode() = default;
-//
-//KDNode::KDNode(const point_t &pt, const size_t &idx_, const KDNodePtr &left_,
-//               const KDNodePtr &right_) {
-//  x = pt;
-//  index = idx_;
-//  left = left_;
-//  right = right_;
-//}
-//
-//KDNode::KDNode(const pointIndex &pi, const KDNodePtr &left_,
-//               const KDNodePtr &right_) {
-//  x = pi.first;
-//  index = pi.second;
-//  left = left_;
-//  right = right_;
-//}
-//
-//KDNode::~KDNode() = default;
-//
-//double KDNode::coord(const size_t &idx) { return x.at(idx); }
-//KDNode::operator bool() { return (!x.empty()); }
-//KDNode::operator point_t() { return x; }
-//KDNode::operator size_t() { return index; }
-//KDNode::operator pointIndex() { return pointIndex(x, index); }
-//
-//KDNodePtr NewKDNodePtr() {
-//  KDNodePtr mynode = std::make_shared< KDNode >();
-//  return mynode;
-//}
-//
-//inline double dist2(const point_t &a, const point_t &b) {
-//  double distc = 0;
-//  for (size_t i = 0; i < a.size(); i++) {
-//    double di = a.at(i) - b.at(i);
-//    distc += di * di;
-//  }
-//  return distc;
-//}
-//
-//inline double dist2(const KDNodePtr &a, const KDNodePtr &b) {
-//  return dist2(a->x, b->x);
-//}
-//
-//inline double dist(const point_t &a, const point_t &b) {
-//  return std::sqrt(dist2(a, b));
-//}
-//
-//inline double dist(const KDNodePtr &a, const KDNodePtr &b) {
-//  return std::sqrt(dist2(a, b));
-//}
-//
-//comparer::comparer(size_t idx_) : idx{idx_} {};
-//
-//inline bool comparer::compare_idx(const pointIndex &a,  //
-//                                  const pointIndex &b   //
-//) {
-//  return (a.first.at(idx) < b.first.at(idx));  //
-//}
-//
-//inline void sort_on_idx(const pointIndexArr::iterator &begin,  //
-//                        const pointIndexArr::iterator &end,    //
-//                        size_t idx) {
-//  comparer comp(idx);
-//  comp.idx = idx;
-//
-//  using std::placeholders::_1;
-//  using std::placeholders::_2;
-//
-//  std::nth_element(begin, begin + std::distance(begin, end) / 2,
-//                   end, std::bind(&comparer::compare_idx, comp, _1, _2));
-//}
-//
-//using pointVec = std::vector< point_t >;
-//
-//KDNodePtr KDTree::make_tree(const pointIndexArr::iterator &begin,  //
-//                            const pointIndexArr::iterator &end,    //
-//                            const size_t &length,                  //
-//                            const size_t &level                    //
-//) {
-//  if (begin == end) {
-//    return NewKDNodePtr();  // empty tree
-//  }
-//
-//  size_t dim = begin->first.size();
-//
-//  if (length > 1) {
-//    sort_on_idx(begin, end, level);
-//  }
-//
-//  auto middle = begin + (length / 2);
-//
-//  auto l_begin = begin;
-//  auto l_end = middle;
-//  auto r_begin = middle + 1;
-//  auto r_end = end;
-//
-//  size_t l_len = length / 2;
-//  size_t r_len = length - l_len - 1;
-//
-//  KDNodePtr left;
-//  if (l_len > 0 && dim > 0) {
-//    left = make_tree(l_begin, l_end, l_len, (level + 1) % dim);
-//  } else {
-//    left = leaf;
-//  }
-//  KDNodePtr right;
-//  if (r_len > 0 && dim > 0) {
-//    right = make_tree(r_begin, r_end, r_len, (level + 1) % dim);
-//  } else {
-//    right = leaf;
-//  }
-//
-//    // KDNode result = KDNode();
-//  return std::make_shared< KDNode >(*middle, left, right);
-//}
-//
-//KDTree::KDTree(pointVec point_array) {
-//  leaf = std::make_shared< KDNode >();
-//    // iterators
-//  pointIndexArr arr;
-//  for (size_t i = 0; i < point_array.size(); i++) {
-//    arr.push_back(pointIndex(point_array.at(i), i));
-//  }
-//
-//  auto begin = arr.begin();
-//  auto end = arr.end();
-//
-//  size_t length = arr.size();
-//  size_t level = 0;  // starting
-//
-//  root = KDTree::make_tree(begin, end, length, level);
-//}
-//
-//KDNodePtr KDTree::nearest_(   //
-//                           const KDNodePtr &branch,  //
-//                           const point_t &pt,        //
-//                           const size_t &level,      //
-//                           const KDNodePtr &best,    //
-//                           const double &best_dist   //
-//) {
-//  double d, dx, dx2;
-//
-//  if (!bool(*branch)) {
-//    return NewKDNodePtr();  // basically, null
-//  }
-//
-//  point_t branch_pt(*branch);
-//  size_t dim = branch_pt.size();
-//
-//  d = dist2(branch_pt, pt);
-//  dx = branch_pt.at(level) - pt.at(level);
-//  dx2 = dx * dx;
-//
-//  KDNodePtr best_l = best;
-//  double best_dist_l = best_dist;
-//
-//  if (d < best_dist) {
-//    best_dist_l = d;
-//    best_l = branch;
-//  }
-//
-//  size_t next_lv = (level + 1) % dim;
-//  KDNodePtr section;
-//  KDNodePtr other;
-//
-//    // select which branch makes sense to check
-//  if (dx > 0) {
-//    section = branch->left;
-//    other = branch->right;
-//  } else {
-//    section = branch->right;
-//    other = branch->left;
-//  }
-//
-//    // keep nearest neighbor from further down the tree
-//  KDNodePtr further = nearest_(section, pt, next_lv, best_l, best_dist_l);
-//  if (!further->x.empty()) {
-//    double dl = dist2(further->x, pt);
-//    if (dl < best_dist_l) {
-//      best_dist_l = dl;
-//      best_l = further;
-//    }
-//  }
-//    // only check the other branch if it makes sense to do so
-//  if (dx2 < best_dist_l) {
-//    further = nearest_(other, pt, next_lv, best_l, best_dist_l);
-//    if (!further->x.empty()) {
-//      double dl = dist2(further->x, pt);
-//      if (dl < best_dist_l) {
-//        best_dist_l = dl;
-//        best_l = further;
-//      }
-//    }
-//  }
-//
-//  return best_l;
-//};
-//
-//  // default caller
-//KDNodePtr KDTree::nearest_(const point_t &pt) {
-//  size_t level = 0;
-//    // KDNodePtr best = branch;
-//  double branch_dist = dist2(point_t(*root), pt);
-//  return nearest_(root,          // beginning of tree
-//                  pt,            // point we are querying
-//                  level,         // start from level 0
-//                  root,          // best is the root
-//                  branch_dist);  // best_dist = branch_dist
-//};
-//
-//point_t KDTree::nearest_point(const point_t &pt) {
-//  return point_t(*nearest_(pt));
-//};
-//size_t KDTree::nearest_index(const point_t &pt) {
-//  return size_t(*nearest_(pt));
-//};
-//
-//pointIndex KDTree::nearest_pointIndex(const point_t &pt) {
-//  KDNodePtr Nearest = nearest_(pt);
-//  return pointIndex(point_t(*Nearest), size_t(*Nearest));
-//}
-//
-//pointIndexArr KDTree::neighborhood_(  //
-//                                    const KDNodePtr &branch,          //
-//                                    const point_t &pt,                //
-//                                    const double &rad,                //
-//                                    const size_t &level               //
-//) {
-//  double d, dx, dx2;
-//
-//  if (!bool(*branch)) {
-//      // branch has no point, means it is a leaf,
-//      // no points to add
-//    return pointIndexArr();
-//  }
-//
-//  size_t dim = pt.size();
-//
-//  double r2 = rad * rad;
-//
-//  d = dist2(point_t(*branch), pt);
-//  dx = point_t(*branch).at(level) - pt.at(level);
-//  dx2 = dx * dx;
-//
-//  pointIndexArr nbh, nbh_s, nbh_o;
-//  if (d <= r2) {
-//    nbh.push_back(pointIndex(*branch));
-//  }
-//
-//    //
-//  KDNodePtr section;
-//  KDNodePtr other;
-//  if (dx > 0) {
-//    section = branch->left;
-//    other = branch->right;
-//  } else {
-//    section = branch->right;
-//    other = branch->left;
-//  }
-//
-//  nbh_s = neighborhood_(section, pt, rad, (level + 1) % dim);
-//  nbh.insert(nbh.end(), nbh_s.begin(), nbh_s.end());
-//  if (dx2 < r2) {
-//    nbh_o = neighborhood_(other, pt, rad, (level + 1) % dim);
-//    nbh.insert(nbh.end(), nbh_o.begin(), nbh_o.end());
-//  }
-//
-//  return nbh;
-//};
-//
-//pointIndexArr KDTree::neighborhood(  //
-//                                   const point_t &pt,               //
-//                                   const double &rad) {
-//  size_t level = 0;
-//  return neighborhood_(root, pt, rad, level);
-//}
-//
-//pointVec KDTree::neighborhood_points(  //
-//                                     const point_t &pt,                 //
-//                                     const double &rad) {
-//  size_t level = 0;
-//  pointIndexArr nbh = neighborhood_(root, pt, rad, level);
-//  pointVec nbhp;
-//  nbhp.resize(nbh.size());
-//  std::transform(nbh.begin(), nbh.end(), nbhp.begin(),
-//                 [](pointIndex x) { return x.first; });
-//  return nbhp;
-//}
-//
-//indexArr KDTree::neighborhood_indices(  //
-//                                      const point_t &pt,                  //
-//                                      const double &rad) {
-//  size_t level = 0;
-//  pointIndexArr nbh = neighborhood_(root, pt, rad, level);
-//  indexArr nbhi;
-//  nbhi.resize(nbh.size());
-//  std::transform(nbh.begin(), nbh.end(), nbhi.begin(),
-//                 [](pointIndex x) { return x.second; });
-//  return nbhi;
-//}
+  //
+  // Kd-Tree implementation.
+  //
+  // Copyright: Christoph Dalitz, 2018
+  //            Jens Wilberg, 2018
+  // License:   BSD style license
+  //            (see the file LICENSE for details)
+  //
+
+#include "kdtree.hpp"
+#include <math.h>
+#include <algorithm>
+#include <limits>
+#include <stdexcept>
+
+namespace Kdtree {
+
+  //--------------------------------------------------------------
+  // function object for comparing only dimension d of two vecotrs
+  //--------------------------------------------------------------
+class compare_dimension {
+public:
+  compare_dimension(size_t dim) { d = dim; }
+  bool operator()(const KdNode& p, const KdNode& q) {
+    return (p.point[d] < q.point[d]);
+  }
+  size_t d;
+};
+
+  //--------------------------------------------------------------
+  // internal node structure used by kdtree
+  //--------------------------------------------------------------
+class kdtree_node {
+public:
+  kdtree_node() {
+    dataindex = cutdim = 0;
+    loson = hison = (kdtree_node*)NULL;
+  }
+  ~kdtree_node() {
+    if (loson) delete loson;
+    if (hison) delete hison;
+  }
+    // index of node data in kdtree array "allnodes"
+  size_t dataindex;
+    // cutting dimension
+  size_t cutdim;
+    // value of point
+    // double cutval; // == point[cutdim]
+  CoordPoint point;
+    //  roots of the two subtrees
+  kdtree_node *loson, *hison;
+    // bounding rectangle of this node's subtree
+  CoordPoint lobound, upbound;
+};
+
+  //--------------------------------------------------------------
+  // different distance metrics
+  //--------------------------------------------------------------
+class DistanceMeasure {
+public:
+  DistanceMeasure() {}
+  virtual ~DistanceMeasure() {}
+  virtual double distance(const CoordPoint& p, const CoordPoint& q) = 0;
+  virtual double coordinate_distance(double x, double y, size_t dim) = 0;
+};
+  // Maximum distance (Linfinite norm)
+class DistanceL0 : virtual public DistanceMeasure {
+  DoubleVector* w;
+
+public:
+  DistanceL0(const DoubleVector* weights = NULL) {
+    if (weights)
+      w = new DoubleVector(*weights);
+    else
+      w = (DoubleVector*)NULL;
+  }
+  ~DistanceL0() {
+    if (w) delete w;
+  }
+  double distance(const CoordPoint& p, const CoordPoint& q) {
+    size_t i;
+    double dist, test;
+    if (w) {
+      dist = (*w)[0] * fabs(p[0] - q[0]);
+      for (i = 1; i < p.size(); i++) {
+        test = (*w)[i] * fabs(p[i] - q[i]);
+        if (test > dist) dist = test;
+      }
+    } else {
+      dist = fabs(p[0] - q[0]);
+      for (i = 1; i < p.size(); i++) {
+        test = fabs(p[i] - q[i]);
+        if (test > dist) dist = test;
+      }
+    }
+    return dist;
+  }
+  double coordinate_distance(double x, double y, size_t dim) {
+    if (w)
+      return (*w)[dim] * fabs(x - y);
+    else
+      return fabs(x - y);
+  }
+};
+  // Manhatten distance (L1 norm)
+class DistanceL1 : virtual public DistanceMeasure {
+  DoubleVector* w;
+
+public:
+  DistanceL1(const DoubleVector* weights = NULL) {
+    if (weights)
+      w = new DoubleVector(*weights);
+    else
+      w = (DoubleVector*)NULL;
+  }
+  ~DistanceL1() {
+    if (w) delete w;
+  }
+  double distance(const CoordPoint& p, const CoordPoint& q) {
+    size_t i;
+    double dist = 0.0;
+    if (w) {
+      for (i = 0; i < p.size(); i++) dist += (*w)[i] * fabs(p[i] - q[i]);
+    } else {
+      for (i = 0; i < p.size(); i++) dist += fabs(p[i] - q[i]);
+    }
+    return dist;
+  }
+  double coordinate_distance(double x, double y, size_t dim) {
+    if (w)
+      return (*w)[dim] * fabs(x - y);
+    else
+      return fabs(x - y);
+  }
+};
+  // Euklidean distance (L2 norm)
+class DistanceL2 : virtual public DistanceMeasure {
+  DoubleVector* w;
+
+public:
+  DistanceL2(const DoubleVector* weights = NULL) {
+    if (weights)
+      w = new DoubleVector(*weights);
+    else
+      w = (DoubleVector*)NULL;
+  }
+  ~DistanceL2() {
+    if (w) delete w;
+  }
+  double distance(const CoordPoint& p, const CoordPoint& q) {
+    size_t i;
+    double dist = 0.0;
+    if (w) {
+      for (i = 0; i < p.size(); i++)
+        dist += (*w)[i] * (p[i] - q[i]) * (p[i] - q[i]);
+    } else {
+      for (i = 0; i < p.size(); i++) dist += (p[i] - q[i]) * (p[i] - q[i]);
+    }
+    return dist;
+  }
+  double coordinate_distance(double x, double y, size_t dim) {
+    if (w)
+      return (*w)[dim] * (x - y) * (x - y);
+    else
+      return (x - y) * (x - y);
+  }
+};
+
+  //--------------------------------------------------------------
+  // destructor and constructor of kdtree
+  //--------------------------------------------------------------
+KdTree::~KdTree() {
+  if (root) delete root;
+  delete distance;
+}
+  // distance_type can be 0 (Maximum), 1 (Manhatten), or 2 (Euklidean)
+KdTree::KdTree(const KdNodeVector* nodes, int distance_type /*=2*/) {
+  size_t i, j;
+  double val;
+    // copy over input data
+  if (!nodes || nodes->empty())
+    throw std::invalid_argument(
+                                "kdtree::KdTree(): argument nodes must not be empty");
+  dimension = nodes->begin()->point.size();
+  allnodes = *nodes;
+    // initialize distance values
+  distance = NULL;
+  this->distance_type = -1;
+  set_distance(distance_type);
+    // compute global bounding box
+  lobound = nodes->begin()->point;
+  upbound = nodes->begin()->point;
+  for (i = 1; i < nodes->size(); i++) {
+    for (j = 0; j < dimension; j++) {
+      val = allnodes[i].point[j];
+      if (lobound[j] > val) lobound[j] = val;
+      if (upbound[j] < val) upbound[j] = val;
+    }
+  }
+    // build tree recursively
+  root = build_tree(0, 0, allnodes.size());
+}
+
+  // distance_type can be 0 (Maximum), 1 (Manhatten), or 2 (Euklidean)
+void KdTree::set_distance(int distance_type,
+                          const DoubleVector* weights /*=NULL*/) {
+  if (distance) delete distance;
+  this->distance_type = distance_type;
+  if (distance_type == 0) {
+    distance = (DistanceMeasure*)new DistanceL0(weights);
+  } else if (distance_type == 1) {
+    distance = (DistanceMeasure*)new DistanceL1(weights);
+  } else {
+    distance = (DistanceMeasure*)new DistanceL2(weights);
+  }
+}
+
+  //--------------------------------------------------------------
+  // recursive build of tree
+  // "a" and "b"-1 are the lower and upper indices
+  // from "allnodes" from which the subtree is to be built
+  //--------------------------------------------------------------
+kdtree_node* KdTree::build_tree(size_t depth, size_t a, size_t b) {
+  size_t m;
+  double temp, cutval;
+  kdtree_node* node = new kdtree_node();
+  node->lobound = lobound;
+  node->upbound = upbound;
+  node->cutdim = depth % dimension;
+  if (b - a <= 1) {
+    node->dataindex = a;
+    node->point = allnodes[a].point;
+  } else {
+    m = (a + b) / 2;
+    std::nth_element(allnodes.begin() + a, allnodes.begin() + m,
+                     allnodes.begin() + b, compare_dimension(node->cutdim));
+    node->point = allnodes[m].point;
+    cutval = allnodes[m].point[node->cutdim];
+    node->dataindex = m;
+    if (m - a > 0) {
+      temp = upbound[node->cutdim];
+      upbound[node->cutdim] = cutval;
+      node->loson = build_tree(depth + 1, a, m);
+      upbound[node->cutdim] = temp;
+    }
+    if (b - m > 1) {
+      temp = lobound[node->cutdim];
+      lobound[node->cutdim] = cutval;
+      node->hison = build_tree(depth + 1, m + 1, b);
+      lobound[node->cutdim] = temp;
+    }
+  }
+  return node;
+}
+
+  //--------------------------------------------------------------
+  // k nearest neighbor search
+  // returns the *k* nearest neighbors of *point* in O(log(n))
+  // time. The result is returned in *result* and is sorted by
+  // distance from *point*.
+  // The optional search predicate is a callable class (aka "functor")
+  // derived from KdNodePredicate. When Null (default, no search
+  // predicate is applied).
+  //--------------------------------------------------------------
+void KdTree::k_nearest_neighbors(const CoordPoint& point, size_t k,
+                                 KdNodeVector* result,
+                                 KdNodePredicate* pred /*=NULL*/) {
+  size_t i;
+  KdNode temp;
+  searchpredicate = pred;
+
+  result->clear();
+  if (k < 1) return;
+  if (point.size() != dimension)
+    throw std::invalid_argument(
+                                "kdtree::k_nearest_neighbors(): point must be of same dimension as "
+                                "kdtree");
+
+    // collect result of k values in neighborheap
+  neighborheap =
+  new std::priority_queue<nn4heap, std::vector<nn4heap>, compare_nn4heap>();
+  if (k > allnodes.size()) {
+      // when more neighbors asked than nodes in tree, return everything
+    k = allnodes.size();
+    for (i = 0; i < k; i++) {
+      if (!(searchpredicate && !(*searchpredicate)(allnodes[i])))
+        neighborheap->push(
+                           nn4heap(i, distance->distance(allnodes[i].point, point)));
+    }
+  } else {
+    neighbor_search(point, root, k);
+  }
+
+    // copy over result sorted by distance
+    // (we must revert the vector for ascending order)
+  while (!neighborheap->empty()) {
+    i = neighborheap->top().dataindex;
+    neighborheap->pop();
+    result->push_back(allnodes[i]);
+  }
+    // beware that less than k results might have been returned
+  k = result->size();
+  for (i = 0; i < k / 2; i++) {
+    temp = (*result)[i];
+    (*result)[i] = (*result)[k - 1 - i];
+    (*result)[k - 1 - i] = temp;
+  }
+  delete neighborheap;
+}
+
+  //--------------------------------------------------------------
+  // range nearest neighbor search
+  // returns the nearest neighbors of *point* in the given range
+  // *r*. The result is returned in *result* and is sorted by
+  // distance from *point*.
+  //--------------------------------------------------------------
+void KdTree::range_nearest_neighbors(const CoordPoint& point, double r,
+                                     KdNodeVector* result) {
+  KdNode temp;
+
+  result->clear();
+  if (point.size() != dimension)
+    throw std::invalid_argument(
+                                "kdtree::k_nearest_neighbors(): point must be of same dimension as "
+                                "kdtree");
+  if (this->distance_type == 2) {
+      // if euclidien distance is used the range must be squared because we
+      // get squred distances from this implementation
+    r *= r;
+  }
+
+    // collect result in neighborheap
+  range_search(point, root, r);
+
+    // copy over result
+  for (std::vector<size_t>::iterator i = range_result.begin();
+       i != range_result.end(); ++i) {
+    result->push_back(allnodes[*i]);
+  }
+
+    // clear vector
+  range_result.clear();
+}
+
+  //--------------------------------------------------------------
+  // recursive function for nearest neighbor search in subtree
+  // under *node*. Updates the heap (class member) *neighborheap*.
+  // returns "true" when no nearer neighbor elsewhere possible
+  //--------------------------------------------------------------
+bool KdTree::neighbor_search(const CoordPoint& point, kdtree_node* node,
+                             size_t k) {
+  double curdist, dist;
+
+  curdist = distance->distance(point, node->point);
+  if (!(searchpredicate && !(*searchpredicate)(allnodes[node->dataindex]))) {
+    if (neighborheap->size() < k) {
+      neighborheap->push(nn4heap(node->dataindex, curdist));
+    } else if (curdist < neighborheap->top().distance) {
+      neighborheap->pop();
+      neighborheap->push(nn4heap(node->dataindex, curdist));
+    }
+  }
+    // first search on side closer to point
+  if (point[node->cutdim] < node->point[node->cutdim]) {
+    if (node->loson)
+      if (neighbor_search(point, node->loson, k)) return true;
+  } else {
+    if (node->hison)
+      if (neighbor_search(point, node->hison, k)) return true;
+  }
+    // second search on farther side, if necessary
+  if (neighborheap->size() < k) {
+    dist = std::numeric_limits<double>::max();
+  } else {
+    dist = neighborheap->top().distance;
+  }
+  if (point[node->cutdim] < node->point[node->cutdim]) {
+    if (node->hison && bounds_overlap_ball(point, dist, node->hison))
+      if (neighbor_search(point, node->hison, k)) return true;
+  } else {
+    if (node->loson && bounds_overlap_ball(point, dist, node->loson))
+      if (neighbor_search(point, node->loson, k)) return true;
+  }
+
+  if (neighborheap->size() == k) dist = neighborheap->top().distance;
+  return ball_within_bounds(point, dist, node);
+}
+
+  //--------------------------------------------------------------
+  // recursive function for range search in subtree under *node*.
+  // Updates the heap (class member) *neighborheap*.
+  //--------------------------------------------------------------
+void KdTree::range_search(const CoordPoint& point, kdtree_node* node,
+                          double r) {
+  double curdist = distance->distance(point, node->point);
+  if (curdist <= r) {
+    range_result.push_back(node->dataindex);
+  }
+  if (node->loson != NULL && this->bounds_overlap_ball(point, r, node->loson)) {
+    range_search(point, node->loson, r);
+  }
+  if (node->hison != NULL && this->bounds_overlap_ball(point, r, node->hison)) {
+    range_search(point, node->hison, r);
+  }
+}
+
+  // returns true when the bounds of *node* overlap with the
+  // ball with radius *dist* around *point*
+bool KdTree::bounds_overlap_ball(const CoordPoint& point, double dist,
+                                 kdtree_node* node) {
+  double distsum = 0.0;
+  size_t i;
+  for (i = 0; i < dimension; i++) {
+    if (point[i] < node->lobound[i]) {  // lower than low boundary
+      distsum += distance->coordinate_distance(point[i], node->lobound[i], i);
+      if (distsum > dist) return false;
+    } else if (point[i] > node->upbound[i]) {  // higher than high boundary
+      distsum += distance->coordinate_distance(point[i], node->upbound[i], i);
+      if (distsum > dist) return false;
+    }
+  }
+  return true;
+}
+
+  // returns true when the bounds of *node* completely contain the
+  // ball with radius *dist* around *point*
+bool KdTree::ball_within_bounds(const CoordPoint& point, double dist,
+                                kdtree_node* node) {
+  size_t i;
+  for (i = 0; i < dimension; i++)
+    if (distance->coordinate_distance(point[i], node->lobound[i], i) <= dist ||
+        distance->coordinate_distance(point[i], node->upbound[i], i) <= dist)
+      return false;
+  return true;
+}
+
+}  // namespace Kdtree

@@ -21,6 +21,7 @@ void PhotonMapper::addLight(std::shared_ptr<Light> light) {
 void PhotonMapper::makePhotonMap(PhotonMap map) {
   for (auto light : _lights) {
     for (unsigned int i = 0; i < PHOTON_LIMIT; i++) {
+      // TODO: We know we won't manage disperse scenes, so let's only generate photons with directions to elements in the scene
       auto direction = glm::sphericalRand(1.f);
       auto position = light->position;
 

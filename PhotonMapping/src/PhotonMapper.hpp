@@ -4,7 +4,7 @@
 
 #include "Light.hpp"
 #include "Scene.hpp"
-//#include "KDTree.hpp"
+#include "KDTree.hpp"
 
 enum PhotonMap {
   Caustics, Global, Volumetric

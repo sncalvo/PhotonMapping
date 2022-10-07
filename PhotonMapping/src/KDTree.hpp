@@ -1,130 +1,108 @@
-//#pragma once
-//
-///*
-// * file: KDTree.hpp
-// * author: J. Frederico Carvalho
-// *
-// * This is an adaptation of the KD-tree implementation in rosetta code
-// *  https://rosettacode.org/wiki/K-d_tree
-// * It is a reimplementation of the C code using C++.
-// * It also includes a few more queries than the original
-// *
-// */
-//
-//#include <algorithm>
-//#include <functional>
-//#include <memory>
-//#include <vector>
-//
-//using point_t = std::vector<float>;
-//using indexArr = std::vector<size_t>;
-//using pointIndex = typename std::pair<std::vector<double>, size_t>;
-//
-//class KDNode {
-//public:
-//  using KDNodePtr = std::shared_ptr<KDNode>;
-//  size_t index;
-//  point_t x;
-//  KDNodePtr left;
-//  KDNodePtr right;
-//
-//    // initializer
-//  KDNode();
-//  KDNode(const point_t &, const size_t &, const KDNodePtr &,
-//         const KDNodePtr &);
-//  KDNode(const pointIndex &, const KDNodePtr &, const KDNodePtr &);
-//  ~KDNode();
-//
-//    // getter
-//  double coord(const size_t &);
-//
-//    // conversions
-//  explicit operator bool();
-//  explicit operator point_t();
-//  explicit operator size_t();
-//  explicit operator pointIndex();
-//};
-//
-//using KDNodePtr = std::shared_ptr< KDNode >;
-//
-//KDNodePtr NewKDNodePtr();
-//
-//  // square euclidean distance
-//inline double dist2(const point_t &, const point_t &);
-//inline double dist2(const KDNodePtr &, const KDNodePtr &);
-//
-//  // euclidean distance
-//inline double dist(const point_t &, const point_t &);
-//inline double dist(const KDNodePtr &, const KDNodePtr &);
-//
-//  // Need for sorting
-//class comparer {
-//public:
-//  size_t idx;
-//  explicit comparer(size_t idx_);
-//  inline bool compare_idx(
-//                          const std::pair< std::vector< double >, size_t > &,  //
-//                          const std::pair< std::vector< double >, size_t > &   //
-//  );
-//};
-//
-//using pointIndexArr = typename std::vector< pointIndex >;
-//
-//inline void sort_on_idx(const pointIndexArr::iterator &,  //
-//                        const pointIndexArr::iterator &,  //
-//                        size_t idx);
-//
-//using pointVec = std::vector< point_t >;
-//
-//class KDTree {
-//  KDNodePtr root;
-//  KDNodePtr leaf;
-//
-//  KDNodePtr make_tree(const pointIndexArr::iterator &begin,  //
-//                      const pointIndexArr::iterator &end,    //
-//                      const size_t &length,                  //
-//                      const size_t &level                    //
-//  );
-//
-//public:
-//  KDTree() = default;
-//  explicit KDTree(pointVec point_array);
-//
-//private:
-//  KDNodePtr nearest_(           //
-//                     const KDNodePtr &branch,  //
-//                     const point_t &pt,        //
-//                     const size_t &level,      //
-//                     const KDNodePtr &best,    //
-//                     const double &best_dist   //
-//  );
-//
-//    // default caller
-//  KDNodePtr nearest_(const point_t &pt);
-//
-//public:
-//  point_t nearest_point(const point_t &pt);
-//  size_t nearest_index(const point_t &pt);
-//  pointIndex nearest_pointIndex(const point_t &pt);
-//
-//private:
-//  pointIndexArr neighborhood_(  //
-//                              const KDNodePtr &branch,  //
-//                              const point_t &pt,        //
-//                              const double &rad,        //
-//                              const size_t &level       //
-//  );
-//
-//public:
-//  pointIndexArr neighborhood(  //
-//                             const point_t &pt,       //
-//                             const double &rad);
-//
-//  pointVec neighborhood_points(  //
-//                               const point_t &pt,         //
-//                               const double &rad);
-//
-//  indexArr neighborhood_indices(  //
-//                                const point_t &pt,          //
-//                                const double &rad);
-//};
+#ifndef __kdtree_HPP
+#define __kdtree_HPP
+
+  //
+  // Kd-Tree implementation.
+  //
+  // Copyright: Christoph Dalitz, 2018-2020
+  //            Jens Wilberg, 2018
+  // License:   BSD style license
+  //            (see the file LICENSE for details)
+  //
+
+#include <cstdlib>
+#include <queue>
+#include <vector>
+
+namespace Kdtree {
+
+typedef std::vector<double> CoordPoint;
+typedef std::vector<double> DoubleVector;
+
+  // for passing points to the constructor of kdtree
+struct KdNode {
+  CoordPoint point;
+  void* data;
+  KdNode(const CoordPoint& p, void* d = NULL) {
+    point = p;
+    data = d;
+  }
+  KdNode() { data = NULL; }
+};
+typedef std::vector<KdNode> KdNodeVector;
+
+  // base function object for search predicate in knn search
+  // returns true when the given KdNode is an admissible neighbor
+  // To define an own search predicate, derive from this class
+  // and overwrite the call operator operator()
+struct KdNodePredicate {
+  virtual ~KdNodePredicate() {}
+  virtual bool operator()(const KdNode&) const { return true; }
+};
+
+  //--------------------------------------------------------
+  // private helper classes used internally by KdTree
+  //
+  // the internal node structure used by kdtree
+class kdtree_node;
+  // base class for different distance computations
+class DistanceMeasure;
+  // helper class for priority queue in k nearest neighbor search
+class nn4heap {
+public:
+  size_t dataindex;  // index of actual kdnode in *allnodes*
+  double distance;   // distance of this neighbor from *point*
+  nn4heap(size_t i, double d) {
+    dataindex = i;
+    distance = d;
+  }
+};
+class compare_nn4heap {
+public:
+  bool operator()(const nn4heap& n, const nn4heap& m) {
+    return (n.distance < m.distance);
+  }
+};
+  //--------------------------------------------------------
+
+  // kdtree class
+class KdTree {
+private:
+    // recursive build of tree
+  kdtree_node* build_tree(size_t depth, size_t a, size_t b);
+    // helper variable for keeping track of subtree bounding box
+  CoordPoint lobound, upbound;
+    // helper variables and functions for k nearest neighbor search
+  std::priority_queue<nn4heap, std::vector<nn4heap>, compare_nn4heap>*
+  neighborheap;
+  std::vector<size_t> range_result;
+    // helper variable to check the distance method
+  int distance_type;
+  bool neighbor_search(const CoordPoint& point, kdtree_node* node, size_t k);
+  void range_search(const CoordPoint& point, kdtree_node* node, double r);
+  bool bounds_overlap_ball(const CoordPoint& point, double dist,
+                           kdtree_node* node);
+  bool ball_within_bounds(const CoordPoint& point, double dist,
+                          kdtree_node* node);
+    // class implementing the distance computation
+  DistanceMeasure* distance;
+    // search predicate in knn searches
+  KdNodePredicate* searchpredicate;
+
+public:
+  KdNodeVector allnodes;
+  size_t dimension;
+  kdtree_node* root;
+    // distance_type can be 0 (max), 1 (city block), or 2 (euklid)
+  KdTree(const KdNodeVector* nodes, int distance_type = 2);
+  ~KdTree();
+  void set_distance(int distance_type, const DoubleVector* weights = NULL);
+  void k_nearest_neighbors(const CoordPoint& point, size_t k,
+                           KdNodeVector* result, KdNodePredicate* pred = NULL);
+  void range_nearest_neighbors(const CoordPoint& point, double r,
+                               KdNodeVector* result);
+};
+
+}  // end namespace Kdtree
+
+#endif
