@@ -1,7 +1,8 @@
 #include "Renderer.hpp"
 
-#include "Utils.hpp"
 #include <glm/gtx/norm.hpp>
+
+#include "EmbreeWrapper.hpp"
 
 constexpr auto MAX_DEPTH = 5;
 
@@ -64,38 +65,7 @@ Color3f Renderer::_calculateColor(glm::vec3 origin, glm::vec3 direction, unsigne
 }
 
 std::optional<Intersection> Renderer::_castRay(glm::vec3 origin, glm::vec3 direction) {
-  struct RTCIntersectContext context;
-  rtcInitIntersectContext(&context);
-
-  auto rayHit = rtcRayFrom(origin, direction);
-
-  rtcIntersect1(_scene->scene, &context, &rayHit);
-
-  if (rayHit.hit.geomID == RTC_INVALID_GEOMETRY_ID) {
-    return std::nullopt;
-  }
-
-  auto intersection = Intersection{
-    _scene->getMaterial(rayHit.hit.geomID),
-    { rayHit.hit.Ng_x, rayHit.hit.Ng_y, rayHit.hit.Ng_z },
-    {
-      rayHit.ray.org_x + rayHit.ray.dir_x * rayHit.ray.tfar,
-      rayHit.ray.org_y + rayHit.ray.dir_y * rayHit.ray.tfar,
-      rayHit.ray.org_z + rayHit.ray.dir_z * rayHit.ray.tfar
-    },
-    {
-      rayHit.ray.dir_x,
-      rayHit.ray.dir_y,
-      rayHit.ray.dir_z
-    },
-    rayHit.ray.tfar,
-    {
-      rayHit.hit.u,
-      rayHit.hit.v,
-    }
-  };
-
-  return std::make_optional(intersection);
+  return intersectRay(origin, direction, _scene);
 }
 
 Color3f Renderer::_renderDiffuse(Intersection &intersection) {

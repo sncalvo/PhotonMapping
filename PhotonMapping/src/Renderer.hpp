@@ -6,34 +6,10 @@
 
 #include "Scene.hpp"
 #include "Material.hpp"
+#include "Intersection.hpp"
 
   // Created this to indicate with types when we intend to use the values as color or position
 using Color3f = glm::vec3;
-
-struct Intersection {
-    // TODO: Add material, normal, position
-  Material material;
-  glm::vec3 normal;
-  glm::vec3 position;
-  glm::vec3 direction;
-  float distance;
-  glm::vec2 uv;
-
-  Intersection(
-    Material material,
-    glm::vec3 normal,
-    glm::vec3 position,
-    glm::vec3 direction,
-    float distance,
-    glm::vec2 uv
-  ) :
-    material(material),
-    normal(glm::normalize(normal)),
-    position(position),
-    direction(glm::normalize(direction)),
-    distance(distance),
-    uv(uv) {}
-};
 
   /// The Renderer is responsible for creating the image and executing the photon mapping algorithm
 class Renderer {

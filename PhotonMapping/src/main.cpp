@@ -15,6 +15,8 @@
 
 #include "Utils.hpp"
 
+constexpr unsigned int numberOfPhotons = 10000;
+
 void errorFunction(void* userPtr, enum RTCError error, const char* str)
 {
   printf("error %d: %s\n", error, str);
