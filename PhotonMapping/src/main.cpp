@@ -12,6 +12,7 @@
 #include "Image.hpp"
 #include "Vector.hpp"
 #include "Renderer.hpp"
+#include "PhotonMapper.hpp"
 
 #include "Utils.hpp"
 
@@ -38,7 +39,7 @@ int main()
   RTCDevice device = initializeDevice();
   auto scene = std::make_shared<Scene>(device);
 
-  auto floor = std::make_shared<Model>("./assets/floor.obj", device);
+  auto floor = std::make_shared<Model>("./assets/plane.obj", device);
   auto ball = std::make_shared<Model>("./assets/ball.obj", device);
   auto cube = std::make_shared<Model>("./assets/cube.obj", device);
   auto sphere = std::make_shared<Model>(RTC_GEOMETRY_TYPE_SPHERE_POINT, device, glm::vec4 { 2.0f, 2.0f, 5.0f, 0.5f });
@@ -67,15 +68,23 @@ int main()
 
   renderer.setScene(scene);
 
-  for (unsigned int x = 0; x < image->width; ++x) {
-    for (unsigned int y = 0; y < image->height; ++y) {
-      Color3f color = renderer.renderPixel(x, y, image->width, image->height);
+  // Generate Photon image
+  PhotonMapper photonMapper = PhotonMapper();
 
-      image->writePixel(x, y, Color { color });
-    }
-  }
+  photonMapper.useScene(scene);
 
-  image->save("test.png");
+  photonMapper.makePhotonMap(PhotonMap::Global);
+  photonMapper.makeMap(*camera);
+
+//  for (unsigned int x = 0; x < image->width; ++x) {
+//    for (unsigned int y = 0; y < image->height; ++y) {
+//      Color3f color = renderer.renderPixel(x, y, image->width, image->height);
+//
+//      image->writePixel(x, y, Color { color });
+//    }
+//  }
+
+//  image->save("test.png");
 
   rtcReleaseDevice(device);
 

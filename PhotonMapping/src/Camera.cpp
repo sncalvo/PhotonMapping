@@ -1,6 +1,7 @@
 #include "Camera.hpp"
 
 Camera::Camera(float aspectRatio, float height, float focalLength, glm::vec3 origin) :
+  _aspectRatio(aspectRatio),
   _viewportWidth(aspectRatio * height),
   origin(origin),
   _viewportHeight(height),

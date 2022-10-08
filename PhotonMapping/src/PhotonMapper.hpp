@@ -10,18 +10,27 @@ enum PhotonMap {
   Caustics, Global, Volumetric
 };
 
+struct PhotonHit {
+  glm::vec3 position;
+  glm::vec3 incidentDirection;
+  float radiance;
+};
+
 class PhotonMapper {
 public:
   PhotonMapper();
 
-  void addLight(std::shared_ptr<Light> light);
   void useScene(std::shared_ptr<Scene> scene);
 
   void makePhotonMap(PhotonMap map);
 
+  void makeMap(const Camera& camera) const;
+
 private:
-  std::vector<std::shared_ptr<Light>> _lights;
 //  KDTree _tree;
-  std::vector<glm::vec3> _photonsColor;
   std::shared_ptr<Scene> _scene;
+
+  void _shootPhoton(const glm::vec3 origin, const glm::vec3 direction, const Light light);
+
+  std::vector<PhotonHit> _hits;
 };

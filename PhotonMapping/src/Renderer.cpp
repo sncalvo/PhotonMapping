@@ -3,6 +3,7 @@
 #include <glm/gtx/norm.hpp>
 
 #include "EmbreeWrapper.hpp"
+#include "Constants.hpp"
 
 constexpr auto MAX_DEPTH = 5;
 
@@ -49,15 +50,15 @@ Color3f Renderer::_calculateColor(glm::vec3 origin, glm::vec3 direction, unsigne
   Color3f specularColor { 0.f };
   Color3f transparentColor { 0.f };
 
-  if (intersection.material.diffuse > glm::epsilon<float>()) {
+  if (intersection.material.diffuse > 0.f) {
     diffuseColor = _renderDiffuse(intersection);
   }
 
-  if (intersection.material.reflection > glm::epsilon<float>()) {
+  if (intersection.material.reflection > 0.f) {
     specularColor = _renderSpecular(intersection, depth);
   }
 
-  if (intersection.material.transparency > glm::epsilon<float>()) {
+  if (intersection.material.transparency > 0.f) {
     transparentColor = _renderTransparent(intersection, depth);
   }
 
@@ -126,7 +127,7 @@ Color3f Renderer::_renderTransparent(Intersection &intersection, unsigned int de
   Color3f color{ 0.f };
 
   color += _calculateColor(
-    intersection.position + glm::vec3(0.01) * intersection.direction,
+    intersection.position + glm::vec3(EPSILON) * intersection.direction,
     intersection.direction, depth - 1
   ) * intersection.material.transparency;
 
@@ -141,7 +142,7 @@ Color3f Renderer::_renderTransparent(Intersection &intersection, unsigned int de
 //
 //    auto refractionDirection = refractionPerpendicular + refractionParallel;
 //    color += _calculateColor(
-//      intersection.position + glm::vec3(0.0001) * intersection.direction,
+//      intersection.position + glm::vec3(EPSILON) * intersection.direction,
 //      refractionDirection, depth - 1
 //    ) * intersection.material.transparency;
 //  }
