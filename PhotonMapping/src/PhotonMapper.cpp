@@ -6,7 +6,7 @@
 #include "Constants.hpp"
 #include "Image.hpp"
 
-constexpr unsigned int PHOTON_LIMIT = 1000000;
+constexpr unsigned int PHOTON_LIMIT = 100000;
 
 PhotonMapper::PhotonMapper() {
   
@@ -135,16 +135,18 @@ void PhotonMapper::_shootPhoton(const glm::vec3 origin, const glm::vec3 directio
   auto randomSample = glm::linearRand(0.f, 1.f);
 
   if (randomSample <= diffuseThreshold) {
-    _hits.push_back(photonHit);
+    if (depth != 0) {
+      _hits.push_back(photonHit);
 
-    _nodes.push_back(Kdtree::KdNode {
-      std::vector {
-        photonHit.position.x,
-        photonHit.position.y,
-        photonHit.position.z
-      },
-      photonHit
-    });
+      _nodes.push_back(Kdtree::KdNode {
+        std::vector {
+          photonHit.position.x,
+          photonHit.position.y,
+          photonHit.position.z
+        },
+        photonHit
+      });
+    }
 
     auto reflectionDirection = randomNormalizedVector2();
 
@@ -167,7 +169,7 @@ void PhotonMapper::_shootPhoton(const glm::vec3 origin, const glm::vec3 directio
     auto refractionPosition = intersection.position + EPSILON * refractionDirection;
 
     _shootPhoton(refractionPosition, refractionDirection, intersection.material.transparencyPower(power), depth + 1);
-  } else {
+  } else if (depth != 0) {
     _hits.push_back(photonHit);
 
     _nodes.push_back(Kdtree::KdNode {

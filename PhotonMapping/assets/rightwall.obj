@@ -1,0 +1,15 @@
+# Apple ModelIO OBJ File: rightwall
+mtllib rightwall.mtl
+g 
+v 3.59926 4.16015 12.4965
+v 3.59926 4.16015 5.30844
+v 3.59925 -3.02786 5.30844
+v 3.59925 -3.02786 12.4965
+vn -1 -0 -0
+vt 0 0
+vt 1 0
+vt 1 1
+vt 0 1
+usemtl material_1
+f 1/1/1 2/2/1 3/3/1 4/4/1 
+s off

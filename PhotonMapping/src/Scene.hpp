@@ -42,7 +42,7 @@ public:
   std::shared_ptr<Camera> getCamera();
 
   RTCScene scene;
-  glm::vec3 ambient{0.2f};
+  glm::vec3 ambient{0.f};
   
   ~Scene();
 

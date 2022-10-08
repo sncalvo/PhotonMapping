@@ -7,7 +7,7 @@
 
 constexpr auto MAX_DEPTH = 5;
 constexpr auto PHOTONS_PER_SAMPLE = 10;
-constexpr auto MAX_PHOTON_SAMPLING_DISTANCE = 0.1f;
+constexpr auto MAX_PHOTON_SAMPLING_DISTANCE = 0.5f;
 
 float attenuation(float distance, const Light& light) {
   return 1.f / (light.constantDecay + light.linearDecay * distance + light.quadraticDecay * glm::pow(distance, 2.f));
@@ -76,20 +76,21 @@ Color3f Renderer::_calculateColor(glm::vec3 origin, glm::vec3 direction, unsigne
     neighbors
   );
 
-  auto predicate = InSameSurfacePredicate(intersection.position, intersection.normal);
+//  auto predicate = InSameSurfacePredicate(intersection.position, intersection.normal);
 
   glm::vec3 average{ 0.f };
   for (auto neighbor : *neighbors) {
-    if (!predicate(neighbor)) {
-      continue;
-    }
+//    if (!predicate(neighbor)) {
+//      continue;
+//    }
 
     auto weight = 1 + glm::distance(neighbor.data.position, intersection.position);
     average += neighbor.data.power / weight;
   }
 
   average /= neighbors->size();
-//  average * intersection.material.reflection / glm::pi<float>()
+  return average * 0.2f + (diffuseColor + specularColor + transparentColor) * 0.8f;
+//  return average;
   return diffuseColor + specularColor + transparentColor;
 }
 

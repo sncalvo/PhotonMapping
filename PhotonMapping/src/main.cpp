@@ -40,15 +40,23 @@ int main()
   RTCDevice device = initializeDevice();
   auto scene = std::make_shared<Scene>(device);
 
-  auto floor = std::make_shared<Model>("./assets/plane.obj", Material { glm::vec3 { 1.f, 0.f, 0.f }, .7f, 0.3f, 0.f,  }, device);
-  auto ball = std::make_shared<Model>("./assets/ball.obj", Material { glm::vec3 { 0.f, 1.f, 0.f }, .7f, 0.3f, 0.f,  }, device);
-  auto cube = std::make_shared<Model>("./assets/cube.obj", Material { glm::vec3 { 0.f, 0.f, 1.f }, .7f, 0.3f, 0.f,  }, device);
-  auto sphere = std::make_shared<Model>(RTC_GEOMETRY_TYPE_SPHERE_POINT, Material { glm::vec3 { 0.f, 1.f, 1.f }, .7f, 0.3f, 0.f,  }, device, glm::vec4 { 2.0f, 2.0f, 5.0f, 0.5f });
+  auto floor = std::make_shared<Model>("./assets/plane.obj", Material { glm::vec3 { 1.f, 1.f, 1.f }, 0.9f, 0.f, 0.f,  }, device);
+  auto ball1 = std::make_shared<Model>(RTC_GEOMETRY_TYPE_SPHERE_POINT, Material { glm::vec3 { 1.f, 0.f, 1.f }, 0.9f, 0.f, 0.f,  }, device, glm::vec4 { -1.0f, -1.0f, 8.0f, 2.0f });
+  auto ball2 = std::make_shared<Model>(RTC_GEOMETRY_TYPE_SPHERE_POINT, Material { glm::vec3 { 1.f, 0.f, 0.f }, 0.9f, 0.f, 0.f,  }, device, glm::vec4 { 1.0f, -2.f, 9.0f, 1.0f });
+  auto sphere = std::make_shared<Model>(RTC_GEOMETRY_TYPE_SPHERE_POINT, Material { glm::vec3 { 0.f, 1.f, 1.f }, 0.9f, 0.f, 0.f,  }, device, glm::vec4 { 2.0f, 2.0f, 8.0f, 1.0f });
+  auto backWall = std::make_shared<Model>("./assets/backwall.obj", Material { glm::vec3 { 1.f, 1.f, 1.f }, 0.9f, 0.f, 0.f,  }, device);
+  auto leftWall = std::make_shared<Model>("./assets/leftwall.obj", Material { glm::vec3 { 1.f, 0.f, 0.f }, 0.9f, 0.f, 0.f,  }, device);
+  auto rightWall = std::make_shared<Model>("./assets/rightwall.obj", Material { glm::vec3 { 0.f, 0.f, 1.f }, 0.9f, 0.f, 0.f,  }, device);
+  auto ceiling = std::make_shared<Model>("./assets/ceiling.obj", Material { glm::vec3 { 1.f, 1.f, 1.f }, 0.9f, 0.f, 0.f,  }, device);
   
   scene->addModel(floor);
-  scene->addModel(ball);
-  scene->addModel(cube);
+  scene->addModel(ball1);
+  scene->addModel(ball2);
   scene->addModel(sphere);
+  scene->addModel(backWall);
+  scene->addModel(leftWall);
+  scene->addModel(rightWall);
+  scene->addModel(ceiling);
   scene->commit();
   scene->addLight(Light {
     glm::vec3 {-2.f, 2.0f, 1.f},
