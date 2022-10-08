@@ -12,6 +12,8 @@ struct Color {
     b((unsigned char)(std::fmin((int) (color.z * 255), 255))),
     a(255) {}
 
+  Color() : r(0), g(0), b(0), a(255) {}
+
   RGBQUAD toRGBQuad() {
     return RGBQUAD {
       b, g, r, a

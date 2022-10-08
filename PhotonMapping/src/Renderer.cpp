@@ -6,6 +6,8 @@
 #include "Constants.hpp"
 
 constexpr auto MAX_DEPTH = 5;
+constexpr auto PHOTONS_PER_SAMPLE = 10;
+constexpr auto MAX_PHOTON_SAMPLING_DISTANCE = 0.1f;
 
 float attenuation(float distance, const Light& light) {
   return 1.f / (light.constantDecay + light.linearDecay * distance + light.quadraticDecay * glm::pow(distance, 2.f));
@@ -13,6 +15,10 @@ float attenuation(float distance, const Light& light) {
 
 void Renderer::setScene(std::shared_ptr<Scene> scene) {
   _scene = scene;
+}
+
+void Renderer::setTree(std::shared_ptr<Kdtree::KdTree> tree) {
+  _tree = tree;
 }
 
 glm::vec3 Renderer::renderPixel(
@@ -62,6 +68,28 @@ Color3f Renderer::_calculateColor(glm::vec3 origin, glm::vec3 direction, unsigne
     transparentColor = _renderTransparent(intersection, depth);
   }
 
+  Kdtree::KdNodeVector* neighbors = new std::vector<Kdtree::KdNode>();
+  std::vector<float> sample_point{ intersection.position.x, intersection.position.y, intersection.position.z };
+  _tree->range_nearest_neighbors(
+    sample_point,
+    MAX_PHOTON_SAMPLING_DISTANCE,
+    neighbors
+  );
+
+  auto predicate = InSameSurfacePredicate(intersection.position, intersection.normal);
+
+  glm::vec3 average{ 0.f };
+  for (auto neighbor : *neighbors) {
+    if (!predicate(neighbor)) {
+      continue;
+    }
+
+    auto weight = 1 + glm::distance(neighbor.data.position, intersection.position);
+    average += neighbor.data.power / weight;
+  }
+
+  average /= neighbors->size();
+//  average * intersection.material.reflection / glm::pi<float>()
   return diffuseColor + specularColor + transparentColor;
 }
 

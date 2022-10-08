@@ -7,9 +7,29 @@
 #include "Scene.hpp"
 #include "Material.hpp"
 #include "Intersection.hpp"
+#include "KDTree.hpp"
 
   // Created this to indicate with types when we intend to use the values as color or position
 using Color3f = glm::vec3;
+
+struct InSameSurfacePredicate : Kdtree::KdNodePredicate {
+  glm::vec3 position;
+  glm::vec3 normal;
+
+  InSameSurfacePredicate(glm::vec3 position, glm::vec3 normal) :
+    position(position),
+    normal(normal) {}
+
+  bool operator()(const Kdtree::KdNode& node) const {
+    if (node.data.normal != normal) {
+      return false;
+    }
+
+    auto directionToPhoton = node.data.position - position;
+
+    return glm::abs(glm::dot(directionToPhoton, normal)) < EPSILON;
+  }
+};
 
   /// The Renderer is responsible for creating the image and executing the photon mapping algorithm
 class Renderer {
@@ -26,6 +46,8 @@ public:
     /// - Parameter scene: shared scene pointer
   void setScene(std::shared_ptr<Scene> scene);
 
+  void setTree(std::shared_ptr<Kdtree::KdTree> tree);
+
 private:
   Color3f _renderPixelSample(uint_fast32_t x, uint_fast32_t y, uint_fast32_t width, uint_fast32_t height);
 
@@ -38,4 +60,5 @@ private:
   Color3f _renderTransparent(Intersection &intersection, unsigned int depth);
 
   std::shared_ptr<Scene> _scene;
+  std::shared_ptr<Kdtree::KdTree> _tree;
 };
