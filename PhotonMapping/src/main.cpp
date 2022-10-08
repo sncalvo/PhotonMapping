@@ -36,6 +36,7 @@ RTCDevice initializeDevice()
 
 int main()
 {
+  std::srand(time(NULL));
   RTCDevice device = initializeDevice();
   auto scene = std::make_shared<Scene>(device);
 

@@ -30,7 +30,7 @@ private:
 //  KDTree _tree;
   std::shared_ptr<Scene> _scene;
 
-  void _shootPhoton(const glm::vec3 origin, const glm::vec3 direction, const Light light);
+  void _shootPhoton(const glm::vec3 origin, const glm::vec3 direction, const Light light, int depth);
 
   std::vector<PhotonHit> _hits;
 };

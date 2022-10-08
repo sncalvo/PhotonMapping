@@ -12,6 +12,28 @@ PhotonMapper::PhotonMapper() {
   
 }
 
+auto random01() {
+  return (float) rand() / RAND_MAX;
+}
+
+auto random() {
+  return random01() * 2.f - 1;
+}
+
+glm::vec3 randomNormalizedVector() {
+  auto x = random();
+  auto y = random();
+  auto z = random();
+
+  while (x*x+y*y+z*z > 1) {
+    x = random();
+    y = random();
+    z = random();
+  }
+
+  return glm::normalize(glm::vec3(x,y,z));
+}
+
 void PhotonMapper::makeMap(const Camera& camera) const {
   auto image = Image(1920, 1080);
 
@@ -39,48 +61,62 @@ void PhotonMapper::makePhotonMap(PhotonMap map) {
   for (auto light : _scene->getLights()) {
     for (unsigned int i = 0; i < PHOTON_LIMIT; i++) {
       // TODO: We know we won't manage disperse scenes, so let's only generate photons with directions to elements in the scene
-      auto direction = glm::sphericalRand(1.f);
+      auto direction = randomNormalizedVector();
       auto position = light.position;
 
-      _shootPhoton(position, direction, light);
+      _shootPhoton(position, direction, light, 10);
     }
   }
 }
 
-void PhotonMapper::_shootPhoton(const glm::vec3 origin, const glm::vec3 direction, const Light light) {
+void PhotonMapper::_shootPhoton(const glm::vec3 origin, const glm::vec3 direction, const Light light, int depth) {
   auto rayIntersection = intersectRay(origin, direction, _scene);
 
   if (!rayIntersection.has_value()) {
     return;
   }
-
   auto intersection = rayIntersection.value();
-
-  _hits.push_back(PhotonHit {
+  auto photonHit = PhotonHit{
     intersection.position,
     intersection.direction,
     light.intensity
-  });
+  };
 
-  if (intersection.material.reflection > 0.f) {
-    auto randomSample = glm::linearRand(0, 1);
+  if (depth == 0) {
+    return;
+  }
 
-    if (randomSample < intersection.material.diffuse) {
-      auto reflectionDirection = glm::sphericalRand(1.f);
+  auto diffuseThreshold = intersection.material.diffuse;
+  auto reflectionThreshold = intersection.material.reflection + diffuseThreshold;
+  auto transparentThreshold = intersection.material.transparency + reflectionThreshold;
 
-      if (glm::dot(reflectionDirection, intersection.normal) < 0) {
-        reflectionDirection = -reflectionDirection;
-      }
+  auto randomSample = random01();
 
-      auto reflectionPosition = intersection.position + EPSILON * reflectionDirection;
+  if (randomSample <= diffuseThreshold) {
+    _hits.push_back(photonHit);
 
-      _shootPhoton(reflectionPosition, reflectionDirection, light);
-    } else if (randomSample < intersection.material.transparency + intersection.material.reflection) {
-      auto reflectionDirection = glm::reflect(intersection.direction, intersection.normal);
+    auto reflectionDirection = randomNormalizedVector();
 
-      auto reflectionPosition = intersection.position + EPSILON * reflectionDirection;
-
-      _shootPhoton(reflectionPosition, reflectionDirection, light);
+    if (glm::dot(reflectionDirection, intersection.normal) < 0) {
+      reflectionDirection = -reflectionDirection;
     }
+
+    auto reflectionPosition = intersection.position + EPSILON * reflectionDirection;
+
+    _shootPhoton(reflectionPosition, reflectionDirection, light, depth - 1);
+  } else if (randomSample <= reflectionThreshold) {
+    auto reflectionDirection = glm::reflect(intersection.direction, intersection.normal);
+
+    auto reflectionPosition = intersection.position + EPSILON * reflectionDirection;
+
+    _shootPhoton(reflectionPosition, reflectionDirection, light, depth - 1);
+  } else if (randomSample <= transparentThreshold) {
+    auto refractionDirection = intersection.direction;
+
+    auto refractionPosition = intersection.position + EPSILON * refractionDirection;
+
+    _shootPhoton(refractionPosition, refractionDirection, light, depth - 1);
+  } else {
+    _hits.push_back(photonHit);
   }
 }
