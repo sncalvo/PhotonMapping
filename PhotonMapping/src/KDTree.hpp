@@ -14,20 +14,22 @@
 #include <queue>
 #include <vector>
 
+#include "PhotonHit.hpp"
+
 namespace Kdtree {
 
-typedef std::vector<double> CoordPoint;
-typedef std::vector<double> DoubleVector;
+typedef std::vector<float> CoordPoint;
+typedef std::vector<float> DoubleVector;
 
   // for passing points to the constructor of kdtree
 struct KdNode {
   CoordPoint point;
-  void* data;
-  KdNode(const CoordPoint& p, void* d = NULL) {
+  PhotonHit data;
+  KdNode(const CoordPoint& p, PhotonHit d) {
     point = p;
     data = d;
   }
-  KdNode() { data = NULL; }
+  KdNode() { data = PhotonHit {}; }
 };
 typedef std::vector<KdNode> KdNodeVector;
 
@@ -51,8 +53,8 @@ class DistanceMeasure;
 class nn4heap {
 public:
   size_t dataindex;  // index of actual kdnode in *allnodes*
-  double distance;   // distance of this neighbor from *point*
-  nn4heap(size_t i, double d) {
+  float distance;   // distance of this neighbor from *point*
+  nn4heap(size_t i, float d) {
     dataindex = i;
     distance = d;
   }
@@ -79,10 +81,10 @@ private:
     // helper variable to check the distance method
   int distance_type;
   bool neighbor_search(const CoordPoint& point, kdtree_node* node, size_t k);
-  void range_search(const CoordPoint& point, kdtree_node* node, double r);
-  bool bounds_overlap_ball(const CoordPoint& point, double dist,
+  void range_search(const CoordPoint& point, kdtree_node* node, float r);
+  bool bounds_overlap_ball(const CoordPoint& point, float dist,
                            kdtree_node* node);
-  bool ball_within_bounds(const CoordPoint& point, double dist,
+  bool ball_within_bounds(const CoordPoint& point, float dist,
                           kdtree_node* node);
     // class implementing the distance computation
   DistanceMeasure* distance;
@@ -99,7 +101,7 @@ public:
   void set_distance(int distance_type, const DoubleVector* weights = NULL);
   void k_nearest_neighbors(const CoordPoint& point, size_t k,
                            KdNodeVector* result, KdNodePredicate* pred = NULL);
-  void range_nearest_neighbors(const CoordPoint& point, double r,
+  void range_nearest_neighbors(const CoordPoint& point, float r,
                                KdNodeVector* result);
 };
 

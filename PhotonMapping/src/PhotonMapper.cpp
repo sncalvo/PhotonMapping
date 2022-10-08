@@ -9,6 +9,7 @@
 constexpr unsigned int PHOTON_LIMIT = 100000;
 
 PhotonMapper::PhotonMapper() {
+  
 }
 
 glm::vec3 randomNormalizedVector() {
@@ -41,17 +42,18 @@ glm::vec3 randomNormalizedVector2() {
 
 void PhotonMapper::makeMap(const Camera& camera) const {
   auto image = Image(1920, 1080);
-//  auto depthImage = Image(1920, 1080);
+  auto image2 = Image(1920, 1080);
 
   for (auto hit : _hits) {
-    auto cameraPointPosition = camera.getProjectionMatrix() * camera.getViewMatrix() * glm::vec4(hit.position, 1.f);
+    Kdtree::KdNodeVector* neighbors = new std::vector<Kdtree::KdNode>();
 
-    auto u = image.width - ((cameraPointPosition.x * image.width) / (2.f * cameraPointPosition.w) + image.width / 2.f);
-    auto v = (cameraPointPosition.y * image.height) / (2.f * cameraPointPosition.w) + image.height / 2.f;
-
-    if (u >= image.width || u < 0 || v >= image.height || v < 0) {
-      continue;
-    }
+    _tree->k_nearest_neighbors(
+      std::vector{
+        hit.position.x,
+        hit.position.y,
+        hit.position.z
+      }, 1, neighbors
+    );
 
 //    if (hit.power.r > 0.9f && hit.power.g > 0.9f && hit.power.b > 0.9f) {
 //      continue;
@@ -61,7 +63,24 @@ void PhotonMapper::makeMap(const Camera& camera) const {
 //      continue;
 //    }
 
-    image.writePixel((unsigned int)u, (unsigned int)v, hit.power);
+    if (neighbors == nullptr) {
+      std::cout << "RIP" << std::endl;
+      continue;
+    }
+
+    Kdtree::KdNode node = neighbors->at(0);
+    auto photon = node.data;
+
+    auto cameraPointPosition = camera.getProjectionMatrix() * camera.getViewMatrix() * glm::vec4(photon.position, 1.f);
+
+    auto u = image.width - ((cameraPointPosition.x * image.width) / (2.f * cameraPointPosition.w) + image.width / 2.f);
+    auto v = (cameraPointPosition.y * image.height) / (2.f * cameraPointPosition.w) + image.height / 2.f;
+
+    if (u >= image.width || u < 0 || v >= image.height || v < 0) {
+      continue;
+    }
+
+    image.writePixel((unsigned int)u, (unsigned int)v, photon.power);
   }
 
   image.save("photon-test.jpeg");
@@ -81,6 +100,12 @@ void PhotonMapper::makePhotonMap(PhotonMap map) {
       _shootPhoton(position, direction, light.color, 0);
     }
   }
+
+  _buildKdTree();
+}
+
+void PhotonMapper::_buildKdTree() {
+  _tree = std::make_shared<Kdtree::KdTree>(&_nodes);
 }
 
 void PhotonMapper::_shootPhoton(const glm::vec3 origin, const glm::vec3 direction, const glm::vec3 power, unsigned int depth) {
@@ -106,6 +131,14 @@ void PhotonMapper::_shootPhoton(const glm::vec3 origin, const glm::vec3 directio
   if (randomSample <= diffuseThreshold) {
     _hits.push_back(photonHit);
 
+    _nodes.push_back(Kdtree::KdNode {
+      std::vector {
+        photonHit.position.x,
+        photonHit.position.y,
+        photonHit.position.z
+      },
+      photonHit
+    });
 //    if (power.r == 1.f && power.g == 0.f) {
 //      std::cout << "CHECKING" << std::endl;
 //    }
@@ -133,5 +166,14 @@ void PhotonMapper::_shootPhoton(const glm::vec3 origin, const glm::vec3 directio
     _shootPhoton(refractionPosition, refractionDirection, intersection.material.transparencyPower(power), depth + 1);
   } else {
     _hits.push_back(photonHit);
+
+    _nodes.push_back(Kdtree::KdNode {
+      std::vector {
+        photonHit.position.x,
+        photonHit.position.y,
+        photonHit.position.z
+      },
+      photonHit
+    });
   }
 }

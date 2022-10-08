@@ -5,16 +5,10 @@
 #include "Light.hpp"
 #include "Scene.hpp"
 #include "KDTree.hpp"
+#include "PhotonHit.hpp"
 
 enum PhotonMap {
   Caustics, Global, Volumetric
-};
-
-struct PhotonHit {
-  glm::vec3 position;
-  glm::vec3 incidentDirection;
-  glm::vec3 power;
-  unsigned int depth;
 };
 
 class PhotonMapper {
@@ -27,9 +21,17 @@ public:
 
   void makeMap(const Camera& camera) const;
 
+  std::shared_ptr<Kdtree::KdTree> getTree() {
+    return _tree;
+  }
+
 private:
-//  KDTree _tree;
+  std::shared_ptr<Kdtree::KdTree> _tree;
+  Kdtree::KdNodeVector _nodes;
+
   std::shared_ptr<Scene> _scene;
+
+  void _buildKdTree();
 
   void _shootPhoton(const glm::vec3 origin, const glm::vec3 direction, const glm::vec3 power, unsigned int depth);
 
