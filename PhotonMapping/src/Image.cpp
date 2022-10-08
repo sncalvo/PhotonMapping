@@ -30,5 +30,5 @@ void Image::save(const char *filename) {
 }
 
 Image::~Image() {
-    FreeImage_DeInitialise();
+//    FreeImage_DeInitialise();
 }

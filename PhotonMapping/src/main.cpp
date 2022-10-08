@@ -36,14 +36,14 @@ RTCDevice initializeDevice()
 
 int main()
 {
-  std::srand(time(NULL));
+  std::srand(time(0));
   RTCDevice device = initializeDevice();
   auto scene = std::make_shared<Scene>(device);
 
-  auto floor = std::make_shared<Model>("./assets/plane.obj", device);
-  auto ball = std::make_shared<Model>("./assets/ball.obj", device);
-  auto cube = std::make_shared<Model>("./assets/cube.obj", device);
-  auto sphere = std::make_shared<Model>(RTC_GEOMETRY_TYPE_SPHERE_POINT, device, glm::vec4 { 2.0f, 2.0f, 5.0f, 0.5f });
+  auto floor = std::make_shared<Model>("./assets/plane.obj", Material { glm::vec3 { 1.f, 0.f, 0.f }, 1.f, 0.f, 0.f,  }, device);
+  auto ball = std::make_shared<Model>("./assets/ball.obj", Material { glm::vec3 { 0.f, 1.f, 0.f }, 1.f, 0.f, 0.f,  }, device);
+  auto cube = std::make_shared<Model>("./assets/cube.obj", Material { glm::vec3 { 0.f, 0.f, 1.f }, 1.f, 0.f, 0.f,  }, device);
+  auto sphere = std::make_shared<Model>(RTC_GEOMETRY_TYPE_SPHERE_POINT, Material { glm::vec3 { 0.f, 1.f, 1.f }, 1.f, 0.f, 0.f,  }, device, glm::vec4 { 2.0f, 2.0f, 5.0f, 0.5f });
   
   scene->addModel(floor);
   scene->addModel(ball);
@@ -52,6 +52,14 @@ int main()
   scene->commit();
   scene->addLight(Light {
     glm::vec3 {-2.f, 2.0f, 1.f},
+    glm::vec3 {1.f, 1.f, 1.f},
+    1.f,
+    0.2f,
+    0.09f,
+    0.0f,
+  });
+  scene->addLight(Light {
+    glm::vec3 {2.f, 2.0f, 1.f},
     glm::vec3 {1.f, 1.f, 1.f},
     1.f,
     0.2f,
@@ -77,15 +85,15 @@ int main()
   photonMapper.makePhotonMap(PhotonMap::Global);
   photonMapper.makeMap(*camera);
 
-//  for (unsigned int x = 0; x < image->width; ++x) {
-//    for (unsigned int y = 0; y < image->height; ++y) {
-//      Color3f color = renderer.renderPixel(x, y, image->width, image->height);
-//
-//      image->writePixel(x, y, Color { color });
-//    }
-//  }
+  for (unsigned int x = 0; x < image->width; ++x) {
+    for (unsigned int y = 0; y < image->height; ++y) {
+      Color3f color = renderer.renderPixel(x, y, image->width, image->height);
 
-//  image->save("test.png");
+      image->writePixel(x, y, Color { color });
+    }
+  }
+
+  image->save("test.png");
 
   rtcReleaseDevice(device);
 

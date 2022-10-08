@@ -4,15 +4,15 @@
 
 unsigned int lastGeometryID = 0;
 
-Mesh::Mesh(std::vector<Vertex> vertices, std::vector<unsigned int> indices, RTCDevice device) {
+Mesh::Mesh(std::vector<Vertex> vertices, std::vector<unsigned int> indices, Material material, RTCDevice device) {
   this->vertices = vertices;
   this->indices = indices;
 
-  _setupMesh(device);
+  _setupMesh(device, material);
 }
 
-Mesh::Mesh(const RTCGeometryType type, RTCDevice device, glm::vec4 transform) {
-  _setupPrimitive(type, device, transform);
+Mesh::Mesh(const RTCGeometryType type, RTCDevice device, glm::vec4 transform, Material material) {
+  _setupPrimitive(type, device, transform, material);
 }
 
 std::pair<unsigned int, Material> Mesh::getMaterialPair() const {
@@ -22,7 +22,7 @@ std::pair<unsigned int, Material> Mesh::getMaterialPair() const {
   return { lastGeometryID++, _material };
 }
 
-void Mesh::_setupMesh(RTCDevice device) {
+void Mesh::_setupMesh(RTCDevice device, Material material) {
   _geometry = rtcNewGeometry(device, RTC_GEOMETRY_TYPE_TRIANGLE);
   vertexBuffer = (float*)rtcSetNewGeometryBuffer(_geometry,
                                                  RTC_BUFFER_TYPE_VERTEX,
@@ -30,8 +30,6 @@ void Mesh::_setupMesh(RTCDevice device) {
                                                  RTC_FORMAT_FLOAT3,
                                                  3 * sizeof(float),
                                                  vertices.size());
-
-  std::cout << "size:" << vertices.size() << std::endl;
 
   indexBuffer = (unsigned*)rtcSetNewGeometryBuffer(_geometry,
                                                    RTC_BUFFER_TYPE_INDEX,
@@ -51,17 +49,10 @@ void Mesh::_setupMesh(RTCDevice device) {
   }
 
   // TODO: Change this to the actual texture
-  _material = Material {
-    Texture { 0, "", "" },
-    glm::vec3{0.7f, 0.7f, 0.7f},
-    0.0,
-    0.0,
-    0.0,
-    1.3,
-  };
+  _material = material;
 }
 
-void Mesh::_setupPrimitive(const RTCGeometryType type, RTCDevice device, glm::vec4 transform) {
+void Mesh::_setupPrimitive(const RTCGeometryType type, RTCDevice device, glm::vec4 transform, Material material) {
   _geometry = rtcNewGeometry(device, type);
 
   auto buffer = (float*)rtcSetNewGeometryBuffer(_geometry, RTC_BUFFER_TYPE_VERTEX, 0, RTC_FORMAT_FLOAT4, sizeof(float) * 4, 1);
@@ -71,14 +62,7 @@ void Mesh::_setupPrimitive(const RTCGeometryType type, RTCDevice device, glm::ve
   buffer[2] = transform.z;
   buffer[3] = transform.w;
 
-  _material = Material {
-    Texture { 0, "", "" },
-    glm::vec3{0.7f, 0.f, 0.f},
-    1.0,
-    0.0,
-    0.0,
-    1.3,
-  };
+  _material = material;
 }
 
 void Mesh::commit(RTCScene scene) {

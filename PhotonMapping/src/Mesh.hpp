@@ -25,9 +25,10 @@ public:
   ///   - vertices: Vector of vertices for the mesh
   ///   - indices: Vector of indices for the mesh
   ///   - device: device to generate geometries
-  Mesh(std::vector<Vertex> vertices, std::vector<unsigned int> indices, RTCDevice device);
+  ///   - material: material for mesh
+  Mesh(std::vector<Vertex> vertices, std::vector<unsigned int> indices, Material material, RTCDevice device);
 
-  Mesh(const RTCGeometryType type, RTCDevice device, glm::vec4 transform);
+  Mesh(const RTCGeometryType type, RTCDevice device, glm::vec4 transform, Material material);
 
   /// Commits geometries to the ray tracing scene
   /// - Parameter scene: ray tracing scene that will contain the geometries
@@ -44,6 +45,6 @@ private:
   Material _material;
 
   /// initializes all the buffer objects/arrays
-  void _setupMesh(RTCDevice device);
-  void _setupPrimitive(const RTCGeometryType type, RTCDevice device, glm::vec4 transform);
+  void _setupMesh(RTCDevice device, Material material);
+  void _setupPrimitive(const RTCGeometryType type, RTCDevice device, glm::vec4 transform, Material material);
 };

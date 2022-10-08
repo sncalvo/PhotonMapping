@@ -2,12 +2,12 @@
 
 #include <iostream>
 
-Model::Model(const std::string& objectPath, RTCDevice device) : _device(device) {
-  _loadModel(objectPath);
+Model::Model(const std::string& objectPath, Material material, RTCDevice device) : _device(device) {
+  _loadModel(objectPath, material);
 }
 
-Model::Model(const RTCGeometryType geometryType, RTCDevice device, glm::vec4 transform) : _device(device) {
-  _loadPrimitive(geometryType, transform);
+Model::Model(const RTCGeometryType geometryType, Material material, RTCDevice device, glm::vec4 transform) : _device(device) {
+  _loadPrimitive(geometryType, transform, material);
 }
 
 void Model::commit(RTCScene scene) const  {
@@ -20,14 +20,14 @@ std::unordered_map<unsigned int, Material> Model::getMaterialsMap() const {
   return _materials;
 }
 
-void Model::_loadPrimitive(const RTCGeometryType geometryType, glm::vec4 transform) {
-  auto mesh = Mesh(geometryType, _device, transform);
+void Model::_loadPrimitive(const RTCGeometryType geometryType, glm::vec4 transform, Material material) {
+  auto mesh = Mesh(geometryType, _device, transform, material);
 
   _meshes.push_back(mesh);
   _materials.insert(mesh.getMaterialPair());
 }
 
-void Model::_loadModel(std::string const &path) {
+void Model::_loadModel(std::string const &path, Material material) {
   Assimp::Importer importer;
   const aiScene* scene = importer.ReadFile(path,
                                            aiProcess_Triangulate | aiProcess_GenSmoothNormals |
@@ -40,23 +40,23 @@ void Model::_loadModel(std::string const &path) {
   }
 
     // process ASSIMP's root node recursively
-  _processNode(scene->mRootNode, scene);
+  _processNode(scene->mRootNode, scene, material);
 }
 
-void Model::_processNode(aiNode *node, const aiScene *scene) {
+void Model::_processNode(aiNode *node, const aiScene *scene, Material material) {
   for (unsigned int i = 0; i < node->mNumMeshes; i++) {
     aiMesh* mesh = scene->mMeshes[node->mMeshes[i]];
-    auto processedMesh = _processMesh(mesh, scene);
+    auto processedMesh = _processMesh(mesh, scene, material);
     _meshes.push_back(processedMesh);
     _materials.insert(processedMesh.getMaterialPair());
   }
 
   for (unsigned int i = 0; i < node->mNumChildren; i++) {
-    _processNode(node->mChildren[i], scene);
+    _processNode(node->mChildren[i], scene, material);
   }
 }
 
-Mesh Model::_processMesh(aiMesh *mesh, const aiScene *scene) {
+Mesh Model::_processMesh(aiMesh *mesh, const aiScene *scene, Material material) {
   std::vector<Vertex> vertices;
   std::vector<unsigned int> indices;
   // std::vector<Texture> textures;
@@ -83,5 +83,5 @@ Mesh Model::_processMesh(aiMesh *mesh, const aiScene *scene) {
     }
   }
 
-  return Mesh(vertices, indices, _device);
+  return Mesh(vertices, indices, material, _device);
 }

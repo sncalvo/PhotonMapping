@@ -13,7 +13,8 @@ enum PhotonMap {
 struct PhotonHit {
   glm::vec3 position;
   glm::vec3 incidentDirection;
-  float radiance;
+  glm::vec3 power;
+  unsigned int depth;
 };
 
 class PhotonMapper {
@@ -30,7 +31,7 @@ private:
 //  KDTree _tree;
   std::shared_ptr<Scene> _scene;
 
-  void _shootPhoton(const glm::vec3 origin, const glm::vec3 direction, const Light light, int depth);
+  void _shootPhoton(const glm::vec3 origin, const glm::vec3 direction, const glm::vec3 power, unsigned int depth);
 
   std::vector<PhotonHit> _hits;
 };

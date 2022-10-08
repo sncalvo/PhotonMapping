@@ -6,36 +6,42 @@
 #include "Constants.hpp"
 #include "Image.hpp"
 
-constexpr unsigned int PHOTON_LIMIT = 1000000;
+constexpr unsigned int PHOTON_LIMIT = 100000;
 
 PhotonMapper::PhotonMapper() {
-  
-}
-
-auto random01() {
-  return (float) rand() / RAND_MAX;
-}
-
-auto random() {
-  return random01() * 2.f - 1;
 }
 
 glm::vec3 randomNormalizedVector() {
-  auto x = random();
-  auto y = random();
-  auto z = random();
+  while (true) {
+    auto x = glm::linearRand(-1.f, 1.f);
+    auto y = glm::linearRand(-1.f, 1.f);
+    auto z = glm::linearRand(-1.f, 1.f);
 
-  while (x*x+y*y+z*z > 1) {
-    x = random();
-    y = random();
-    z = random();
+    if (x * x + y * y + z * z <= 1) {
+      return glm::normalize(glm::vec3(x,y,z));
+    }
   }
+}
 
-  return glm::normalize(glm::vec3(x,y,z));
+glm::vec3 randomNormalizedVector2() {
+  while (true) {
+    auto x = glm::linearRand(-1.f, 1.f);
+    auto y = glm::linearRand(-1.f, 1.f);
+    auto z = glm::linearRand(-1.f, 1.f);
+
+    if (glm::abs(x) < 0.1f || glm::abs(y) < 0.1f || glm::abs(z) < 0.1f) {
+      continue;
+    }
+
+    if (x * x + y * y + z * z <= 1) {
+      return glm::normalize(glm::vec3(x,y,z));
+    }
+  }
 }
 
 void PhotonMapper::makeMap(const Camera& camera) const {
   auto image = Image(1920, 1080);
+//  auto depthImage = Image(1920, 1080);
 
   for (auto hit : _hits) {
     auto cameraPointPosition = camera.getProjectionMatrix() * camera.getViewMatrix() * glm::vec4(hit.position, 1.f);
@@ -47,7 +53,15 @@ void PhotonMapper::makeMap(const Camera& camera) const {
       continue;
     }
 
-    image.writePixel((unsigned int)u, (unsigned int)v, Color(glm::vec3{ 1.f }));
+//    if (hit.power.r > 0.9f && hit.power.g > 0.9f && hit.power.b > 0.9f) {
+//      continue;
+//    }
+
+//    if (hit.depth != 2) {
+//      continue;
+//    }
+
+    image.writePixel((unsigned int)u, (unsigned int)v, hit.power);
   }
 
   image.save("photon-test.jpeg");
@@ -64,12 +78,12 @@ void PhotonMapper::makePhotonMap(PhotonMap map) {
       auto direction = randomNormalizedVector();
       auto position = light.position;
 
-      _shootPhoton(position, direction, light, 10);
+      _shootPhoton(position, direction, light.color, 0);
     }
   }
 }
 
-void PhotonMapper::_shootPhoton(const glm::vec3 origin, const glm::vec3 direction, const Light light, int depth) {
+void PhotonMapper::_shootPhoton(const glm::vec3 origin, const glm::vec3 direction, const glm::vec3 power, unsigned int depth) {
   auto rayIntersection = intersectRay(origin, direction, _scene);
 
   if (!rayIntersection.has_value()) {
@@ -79,23 +93,24 @@ void PhotonMapper::_shootPhoton(const glm::vec3 origin, const glm::vec3 directio
   auto photonHit = PhotonHit{
     intersection.position,
     intersection.direction,
-    light.intensity
+    power,
+    depth
   };
 
-  if (depth == 0) {
-    return;
-  }
+  auto diffuseThreshold = intersection.material.diffuseMaxPower(power);
+  auto reflectionThreshold = diffuseThreshold + intersection.material.specularMaxPower(power);
+  auto transparencyThreshold = reflectionThreshold + intersection.material.transparencyMaxPower(power);
 
-  auto diffuseThreshold = intersection.material.diffuse;
-  auto reflectionThreshold = intersection.material.reflection + diffuseThreshold;
-  auto transparentThreshold = intersection.material.transparency + reflectionThreshold;
-
-  auto randomSample = random01();
+  auto randomSample = glm::linearRand(0.f, 1.f);
 
   if (randomSample <= diffuseThreshold) {
     _hits.push_back(photonHit);
 
-    auto reflectionDirection = randomNormalizedVector();
+//    if (power.r == 1.f && power.g == 0.f) {
+//      std::cout << "CHECKING" << std::endl;
+//    }
+
+    auto reflectionDirection = randomNormalizedVector2();
 
     if (glm::dot(reflectionDirection, intersection.normal) < 0) {
       reflectionDirection = -reflectionDirection;
@@ -103,19 +118,19 @@ void PhotonMapper::_shootPhoton(const glm::vec3 origin, const glm::vec3 directio
 
     auto reflectionPosition = intersection.position + EPSILON * reflectionDirection;
 
-    _shootPhoton(reflectionPosition, reflectionDirection, light, depth - 1);
+    _shootPhoton(reflectionPosition, reflectionDirection, intersection.material.diffusePower(power), depth + 1);
   } else if (randomSample <= reflectionThreshold) {
     auto reflectionDirection = glm::reflect(intersection.direction, intersection.normal);
 
     auto reflectionPosition = intersection.position + EPSILON * reflectionDirection;
 
-    _shootPhoton(reflectionPosition, reflectionDirection, light, depth - 1);
-  } else if (randomSample <= transparentThreshold) {
+    _shootPhoton(reflectionPosition, reflectionDirection, intersection.material.specularPower(power), depth + 1);
+  } else if (randomSample <= transparencyThreshold) {
     auto refractionDirection = intersection.direction;
 
     auto refractionPosition = intersection.position + EPSILON * refractionDirection;
 
-    _shootPhoton(refractionPosition, refractionDirection, light, depth - 1);
+    _shootPhoton(refractionPosition, refractionDirection, intersection.material.transparencyPower(power), depth + 1);
   } else {
     _hits.push_back(photonHit);
   }

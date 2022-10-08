@@ -14,7 +14,7 @@ struct Color {
 
   RGBQUAD toRGBQuad() {
     return RGBQUAD {
-      r, g, b, a
+      b, g, r, a
     };
   };
 };

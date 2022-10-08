@@ -75,3 +75,11 @@ inline auto rtcRayFrom(Vector vector) {
 
   return shadowRayHit;
 }
+
+inline float maxComponent(glm::vec3 vector) {
+  return std::max(vector.r, std::max(vector.g, vector.b));
+}
+
+inline float maxComponent(float first, float second, float third) {
+  return std::max(first, std::max(second, third));
+}
