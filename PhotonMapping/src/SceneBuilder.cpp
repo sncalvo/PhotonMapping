@@ -85,17 +85,17 @@ namespace YAML {
 SceneBuilder::SceneBuilder(RTCDevice device, float aspectRatio) : _device(device), _aspectRatio(aspectRatio) {
 }
 
-Model SceneBuilder::_addSphere(YAML::Node node) {
-    auto material = node["material"].as<Material>();
-    auto sphere = std::make_shared<Model>(RTC_GEOMETRY_TYPE_SPHERE_POINT, material, _device, node["stuff"].as<glm::vec4>());
-    _scene->addModel(sphere);
-}
+//Model SceneBuilder::_addSphere(YAML::Node node) {
+//    auto material = node["material"].as<Material>();
+//    auto sphere = std::make_shared<Model>(RTC_GEOMETRY_TYPE_SPHERE_POINT, material, _device, node["stuff"].as<glm::vec4>());
+//    _scene->addModel(sphere);
+//}
 
 void SceneBuilder::_loadModels(YAML::Node models) {
   for (std::size_t i = 0; i < models.size(); i++) {
     if (models[i]["type"].as<std::string>() == "sphere") {
       std::cout << "SPHERE 1" << std::endl;
-      _addSphere(models[i]);
+      //_addSphere(models[i]);
     }
   }
 
