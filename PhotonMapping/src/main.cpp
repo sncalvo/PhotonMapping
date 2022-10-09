@@ -41,9 +41,9 @@ int main()
   auto scene = std::make_shared<Scene>(device);
 
   auto floor = std::make_shared<Model>("./assets/plane.obj", Material { glm::vec3 { 1.f, 1.f, 1.f }, 0.9f, 0.f, 0.f,  }, device);
-  auto ball1 = std::make_shared<Model>(RTC_GEOMETRY_TYPE_SPHERE_POINT, Material { glm::vec3 { 1.f, 0.f, 1.f }, 0.9f, 0.f, 0.f,  }, device, glm::vec4 { -1.0f, -1.0f, 8.0f, 2.0f });
-  auto ball2 = std::make_shared<Model>(RTC_GEOMETRY_TYPE_SPHERE_POINT, Material { glm::vec3 { 1.f, 0.f, 0.f }, 0.9f, 0.f, 0.f,  }, device, glm::vec4 { 1.0f, -2.f, 9.0f, 1.0f });
-  auto sphere = std::make_shared<Model>(RTC_GEOMETRY_TYPE_SPHERE_POINT, Material { glm::vec3 { 0.f, 1.f, 1.f }, 0.9f, 0.f, 0.f,  }, device, glm::vec4 { 2.0f, 2.0f, 8.0f, 1.0f });
+  auto ball1 = std::make_shared<Model>(RTC_GEOMETRY_TYPE_SPHERE_POINT, Material { glm::vec3 { 1.f, 0.f, 1.f }, 0.2f, 0.1f, 0.6f,  }, device, glm::vec4 { -1.0f, -1.0f, 8.0f, 2.0f });
+  auto ball2 = std::make_shared<Model>(RTC_GEOMETRY_TYPE_SPHERE_POINT, Material { glm::vec3 { 1.f, 0.f, 0.f }, 0.2f, 7.f, 0.f,  }, device, glm::vec4 { 1.0f, -2.f, 9.0f, 1.0f });
+  auto sphere = std::make_shared<Model>(RTC_GEOMETRY_TYPE_SPHERE_POINT, Material { glm::vec3 { 0.f, 1.f, 1.f }, 0.9f, 0.f, 0.f,  }, device, glm::vec4 { 2.0f, -2.0f, 7.0f, 1.0f });
   auto backWall = std::make_shared<Model>("./assets/backwall.obj", Material { glm::vec3 { 1.f, 1.f, 1.f }, 0.9f, 0.f, 0.f,  }, device);
   auto leftWall = std::make_shared<Model>("./assets/leftwall.obj", Material { glm::vec3 { 1.f, 0.f, 0.f }, 0.9f, 0.f, 0.f,  }, device);
   auto rightWall = std::make_shared<Model>("./assets/rightwall.obj", Material { glm::vec3 { 0.f, 0.f, 1.f }, 0.9f, 0.f, 0.f,  }, device);
@@ -67,7 +67,7 @@ int main()
     0.0f,
   });
 
-  auto image = new Image(1366, 768);
+  auto image = new Image(854, 480);
   const auto aspectRatio = (float)image->width / (float)image->height;
   auto camera = std::make_shared<Camera>(aspectRatio, 1.f);
 

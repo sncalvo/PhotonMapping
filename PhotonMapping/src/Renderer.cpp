@@ -5,10 +5,6 @@
 #include "EmbreeWrapper.hpp"
 #include "Constants.hpp"
 
-constexpr auto MAX_DEPTH = 5;
-constexpr auto PHOTONS_PER_SAMPLE = 10;
-constexpr auto MAX_PHOTON_SAMPLING_DISTANCE = 0.5f;
-
 float attenuation(float distance, const Light& light) {
   return 1.f / (light.constantDecay + light.linearDecay * distance + light.quadraticDecay * glm::pow(distance, 2.f));
 }
@@ -75,7 +71,7 @@ Color3f Renderer::_calculateColor(glm::vec3 origin, glm::vec3 direction, unsigne
 //    MAX_PHOTON_SAMPLING_DISTANCE,
 //    neighbors
 //  );
-  _tree->k_nearest_neighbors(point, 100, neighbors);
+  _tree->k_nearest_neighbors(point, PHOTONS_PER_SAMPLE, neighbors);
 
 //  auto predicate = InSameSurfacePredicate(intersection.position, intersection.normal);
 
@@ -90,9 +86,10 @@ Color3f Renderer::_calculateColor(glm::vec3 origin, glm::vec3 direction, unsigne
   }
 
   average /= neighbors->size();
+
+  delete neighbors;
+
   return average * 0.2f + (diffuseColor + specularColor + transparentColor) * 0.8f;
-//  return average;
-  return diffuseColor + specularColor + transparentColor;
 }
 
 std::optional<Intersection> Renderer::_castRay(glm::vec3 origin, glm::vec3 direction) {

@@ -6,8 +6,6 @@
 #include "Constants.hpp"
 #include "Image.hpp"
 
-constexpr unsigned int PHOTON_LIMIT = 500000;
-
 PhotonMapper::PhotonMapper() {
   
 }
@@ -41,8 +39,9 @@ glm::vec3 randomNormalizedVector2() {
 }
 
 void PhotonMapper::makeMap(const Camera& camera) const {
-  auto image = Image(1920, 1080);
-  auto image2 = Image(1920, 1080);
+  auto image = Image(854, 480);
+  auto depthImage = Image(854, 480);
+  auto coloredImage = Image(854, 480);
 
   for (auto hit : _hits) {
     Kdtree::KdNodeVector* neighbors = new std::vector<Kdtree::KdNode>();
@@ -59,15 +58,6 @@ void PhotonMapper::makeMap(const Camera& camera) const {
 //      continue;
 //    }
 
-//    if (hit.depth != 2) {
-//      continue;
-//    }
-
-    if (neighbors == nullptr) {
-      std::cout << "RIP" << std::endl;
-      continue;
-    }
-
     Kdtree::KdNode node = neighbors->at(0);
     auto photon = node.data;
 
@@ -81,9 +71,48 @@ void PhotonMapper::makeMap(const Camera& camera) const {
     }
 
     image.writePixel((unsigned int)u, (unsigned int)v, photon.power);
+    depthImage.writePixel((unsigned int)u, (unsigned int)v, glm::vec3 { photon.depth * 40.f });
+
+    delete neighbors;
   }
 
-  image.save("photon-test.jpeg");
+  for (size_t x = 0; x < coloredImage.width; ++x) {
+    for (size_t y = 0; y < coloredImage.height; ++y) {
+      auto camera = _scene->getCamera();
+      auto direction = camera->pixelRayDirection(x, y, coloredImage.width, coloredImage.height);
+
+      auto result = intersectRay(camera->origin, direction, _scene);
+      if (!result.has_value()) {
+        coloredImage.writePixel(x, y, _scene->ambient);
+        continue;
+      }
+
+      auto intersection = result.value();
+
+      Kdtree::KdNodeVector* neighbors = new std::vector<Kdtree::KdNode>();
+      std::vector<float> point{ intersection.position.x, intersection.position.y, intersection.position.z };
+      _tree->k_nearest_neighbors(point, PHOTONS_PER_SAMPLE, neighbors);
+
+      glm::vec3 average{ 0.f };
+      for (auto neighbor : *neighbors) {
+        auto weight = 1 + glm::distance(neighbor.data.position, intersection.position);
+        average += neighbor.data.power / weight;
+      }
+
+      average /= neighbors->size();
+
+      delete neighbors;
+
+      coloredImage.writePixel(x, y, average);
+    }
+  }
+
+  image.save("photon-hits.jpeg");
+  std::cout << "Saved photon-hits.jpeg" << std::endl;
+  depthImage.save("photon-hits-depth.jpeg");
+  std::cout << "Saved photon-hits-depth.jpeg" << std::endl;
+  coloredImage.save("photon-colored.jpeg");
+  std::cout << "Saved photon-colored.jpeg" << std::endl;
 }
 
 void PhotonMapper::useScene(std::shared_ptr<Scene> scene) {
