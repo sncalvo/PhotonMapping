@@ -320,7 +320,7 @@ void KdTree::range_nearest_neighbors(const CoordPoint& point, float r,
 
   result->clear();
   if (point.size() != dimension)
-    throw std::invalid_argument(
+    throw std::invalid_argument(    
                                 "kdtree::k_nearest_neighbors(): point must be of same dimension as "
                                 "kdtree");
   if (this->distance_type == 2) {

@@ -18,7 +18,7 @@ struct Material {
   float reflection;
   float transparency;
 
-  float refractionIndex = 0.f;
+  float refractionIndex = 1.f;
 
   float diffuseMaxPower(glm::vec3 photonColor) const {
     auto color = diffuseColor();
