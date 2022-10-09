@@ -33,7 +33,7 @@ private:
 
   void _buildKdTree();
 
-  void _shootPhoton(const glm::vec3 origin, const glm::vec3 direction, const glm::vec3 power, unsigned int depth);
+  void _shootPhoton(const glm::vec3 origin, const glm::vec3 direction, const glm::vec3 power, unsigned int depth, bool isCausticMode, bool in);
 
   std::vector<PhotonHit> _hits;
 };

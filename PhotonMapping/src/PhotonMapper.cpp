@@ -41,7 +41,6 @@ glm::vec3 randomNormalizedVector2() {
 void PhotonMapper::makeMap(const Camera& camera) const {
   auto image = Image(IMAGE_WIDTH, IMAGE_HEIGHT);
   auto depthImage = Image(IMAGE_WIDTH, IMAGE_HEIGHT);
-  auto coloredImage = Image(IMAGE_WIDTH, IMAGE_HEIGHT);
 
   for (auto hit : _hits) {
     Kdtree::KdNodeVector* neighbors = new std::vector<Kdtree::KdNode>();
@@ -76,43 +75,10 @@ void PhotonMapper::makeMap(const Camera& camera) const {
     delete neighbors;
   }
 
-  for (size_t x = 0; x < coloredImage.width; ++x) {
-    for (size_t y = 0; y < coloredImage.height; ++y) {
-      auto camera = _scene->getCamera();
-      auto direction = camera->pixelRayDirection(x, y, coloredImage.width, coloredImage.height);
-
-      auto result = intersectRay(camera->origin, direction, _scene);
-      if (!result.has_value()) {
-        coloredImage.writePixel(x, y, _scene->ambient);
-        continue;
-      }
-
-      auto intersection = result.value();
-
-      Kdtree::KdNodeVector* neighbors = new std::vector<Kdtree::KdNode>();
-      std::vector<float> point{ intersection.position.x, intersection.position.y, intersection.position.z };
-      _tree->k_nearest_neighbors(point, PHOTONS_PER_SAMPLE, neighbors);
-
-      glm::vec3 average{ 0.f };
-      for (auto neighbor : *neighbors) {
-        auto weight = 1 + glm::distance(neighbor.data.position, intersection.position);
-        average += neighbor.data.power / weight;
-      }
-
-      average /= neighbors->size();
-
-      delete neighbors;
-
-      coloredImage.writePixel(x, y, average);
-    }
-  }
-
   image.save("photon-hits.jpeg");
   std::cout << "Saved photon-hits.jpeg" << std::endl;
   depthImage.save("photon-hits-depth.jpeg");
   std::cout << "Saved photon-hits-depth.jpeg" << std::endl;
-  coloredImage.save("photon-colored.jpeg");
-  std::cout << "Saved photon-colored.jpeg" << std::endl;
 }
 
 void PhotonMapper::useScene(std::shared_ptr<Scene> scene) {
@@ -127,7 +93,7 @@ void PhotonMapper::makePhotonMap(PhotonMap map) {
 
       auto position = light.position;
 
-      _shootPhoton(position, direction, light.color, 0);
+      _shootPhoton(position, direction, light.color, 0, true, false);
     }
   }
 
@@ -138,7 +104,8 @@ void PhotonMapper::_buildKdTree() {
   _tree = std::make_shared<Kdtree::KdTree>(&_nodes);
 }
 
-void PhotonMapper::_shootPhoton(const glm::vec3 origin, const glm::vec3 direction, const glm::vec3 power, unsigned int depth) {
+void PhotonMapper::_shootPhoton(const glm::vec3 origin, const glm::vec3 direction,
+                                const glm::vec3 power, unsigned int depth, bool isCausticMode, bool in) {
   auto rayIntersection = intersectRay(origin, direction, _scene);
 
   if (!rayIntersection.has_value()) {
@@ -173,27 +140,50 @@ void PhotonMapper::_shootPhoton(const glm::vec3 origin, const glm::vec3 directio
       });
     }
 
-    auto reflectionDirection = randomNormalizedVector2();
+    if (!isCausticMode) {
+      auto reflectionDirection = randomNormalizedVector2();
 
-    if (glm::dot(reflectionDirection, intersection.normal) < 0) {
-      reflectionDirection = -reflectionDirection;
+      if (glm::dot(reflectionDirection, intersection.normal) < 0) {
+        reflectionDirection = -reflectionDirection;
+      }
+
+      auto reflectionPosition = intersection.position + EPSILON * reflectionDirection;
+
+      _shootPhoton(reflectionPosition, reflectionDirection, intersection.material.diffusePower(power), depth + 1, isCausticMode, in);
+    }
+  } else if (randomSample <= reflectionThreshold) {
+    if (!isCausticMode) {
+      auto reflectionDirection = glm::reflect(intersection.direction, intersection.normal);
+      auto reflectionPosition = intersection.position + EPSILON * reflectionDirection;
+
+      _shootPhoton(reflectionPosition, reflectionDirection, intersection.material.specularPower(power), depth + 1, isCausticMode, in);
+    }
+  } else if (randomSample <= transparencyThreshold || in) {
+    auto cosTita = glm::dot(-intersection.normal, intersection.direction);
+    auto normal = intersection.normal;
+    float nuIt;
+    if (cosTita < 0) {
+      cosTita = glm::dot(intersection.normal, intersection.direction);
+      normal = -intersection.normal;
     }
 
-    auto reflectionPosition = intersection.position + EPSILON * reflectionDirection;
+    if (in) {
+      nuIt = 1.8 / 1.0;
+    } else {
+      nuIt = 1.0 / 1.8;
+    }
 
-    _shootPhoton(reflectionPosition, reflectionDirection, intersection.material.diffusePower(power), depth + 1);
-  } else if (randomSample <= reflectionThreshold) {
-    auto reflectionDirection = glm::reflect(intersection.direction, intersection.normal);
-
-    auto reflectionPosition = intersection.position + EPSILON * reflectionDirection;
-
-    _shootPhoton(reflectionPosition, reflectionDirection, intersection.material.specularPower(power), depth + 1);
-  } else if (randomSample <= transparencyThreshold) {
-    auto refractionDirection = intersection.direction;
-
-    auto refractionPosition = intersection.position + EPSILON * refractionDirection;
-
-    _shootPhoton(refractionPosition, refractionDirection, intersection.material.transparencyPower(power), depth + 1);
+    float Ci = cosTita;
+		float SiSqrd = 1 - pow(Ci, 2);
+		float discriminant = 1 - pow(nuIt, 2) * SiSqrd;
+		if (discriminant < 0) {
+			return; //Total Internal Reflection case
+		}
+		else {
+			glm::vec3 refractionDirection = nuIt * intersection.direction + (Ci * nuIt - sqrtf(discriminant)) * normal;
+      auto refractionPosition = intersection.position + EPSILON * refractionDirection;
+      _shootPhoton(intersection.position, refractionDirection, intersection.material.transparencyPower(power), depth + 1, isCausticMode, !in);
+		}
   } else if (depth != 0) {
     _hits.push_back(photonHit);
 

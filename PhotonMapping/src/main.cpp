@@ -43,8 +43,8 @@ int main()
   auto floor = std::make_shared<Model>("./assets/plane.obj", Material { glm::vec3 { 1.f, 1.f, 1.f }, 0.9f, 0.f, 0.f,  }, device);
 /*   auto ball1 = std::make_shared<Model>(RTC_GEOMETRY_TYPE_SPHERE_POINT, Material { glm::vec3 { 1.f, 0.f, 1.f }, 0.2f, 0.1f, 0.6f,  }, device, glm::vec4 { -1.0f, -1.0f, 8.0f, 2.0f }); */
 /*   auto ball2 = std::make_shared<Model>(RTC_GEOMETRY_TYPE_SPHERE_POINT, Material { glm::vec3 { 1.f, 0.f, 0.f }, 0.2f, 7.f, 0.f,  }, device, glm::vec4 { 1.0f, -2.f, 9.0f, 1.0f }); */
-  auto sphere = std::make_shared<Model>(RTC_GEOMETRY_TYPE_SPHERE_POINT, Material { glm::vec3 { 0.8f, 0.8f, 0.8f }, 0.1f, 0.0f, 0.8f,  }, device, glm::vec4 { -0.5f, -2.0f, 7.0f, 1.0f });
-  auto sphere2 = std::make_shared<Model>(RTC_GEOMETRY_TYPE_SPHERE_POINT, Material { glm::vec3 { 0.8f, 0.8f, 0.8f }, 0.0f, 0.0f, 0.f,  }, device, glm::vec4 { 2.0f, -2.0f, 7.0f, 1.0f });
+  auto sphere = std::make_shared<Model>(RTC_GEOMETRY_TYPE_SPHERE_POINT, Material { glm::vec3 { 0.8f, 0.8f, 0.8f }, 0.1f, 0.1f, 0.8f,  }, device, glm::vec4 { -0.5f, -2.0f, 7.0f, 1.0f });
+  auto sphere2 = std::make_shared<Model>(RTC_GEOMETRY_TYPE_SPHERE_POINT, Material { glm::vec3 { 0.8f, 0.8f, 0.8f }, 0.0f, 1.0f, 0.f,  }, device, glm::vec4 { 2.0f, -2.0f, 7.0f, 1.0f });
   auto backWall = std::make_shared<Model>("./assets/backwall.obj", Material { glm::vec3 { 1.f, 1.f, 1.f }, 0.9f, 0.f, 0.f,  }, device);
   auto leftWall = std::make_shared<Model>("./assets/leftwall.obj", Material { glm::vec3 { 1.f, 0.f, 0.f }, 0.9f, 0.f, 0.f,  }, device);
   auto rightWall = std::make_shared<Model>("./assets/rightwall.obj", Material { glm::vec3 { 0.f, 0.f, 1.f }, 0.9f, 0.f, 0.f,  }, device);
@@ -61,15 +61,16 @@ int main()
   scene->addModel(ceiling);
   scene->commit();
   scene->addLight(Light {
-    glm::vec3 {0.0f, 4.1f, 6.5f},
+    glm::vec3 {0.0f, 0.1f, 7.5f},
     glm::vec3 {1.f, 1.f, 1.f},
     1.f,
     0.2f,
     0.09f,
-    0.0f,
+    0.042f,
   });
 
   auto image = new Image(IMAGE_WIDTH, IMAGE_HEIGHT);
+  auto pmImage = new Image(IMAGE_WIDTH, IMAGE_HEIGHT);
   const auto aspectRatio = (float)image->width / (float)image->height;
   auto camera = std::make_shared<Camera>(aspectRatio, 1.f);
 
@@ -91,13 +92,16 @@ int main()
 
   for (unsigned int x = 0; x < image->width; ++x) {
     for (unsigned int y = 0; y < image->height; ++y) {
-      Color3f color = renderer.renderPixel(x, y, image->width, image->height);
+      Color3f pmColor = glm::vec3(0.f);
+      Color3f color = renderer.renderPixel(x, y, image->width, image->height, pmColor);
 
       image->writePixel(x, y, color);
+      pmImage->writePixel(x, y, pmColor);
     }
   }
 
   image->save("test.png");
+  pmImage->save("pm.png");
 
   rtcReleaseDevice(device);
 
