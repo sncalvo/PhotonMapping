@@ -64,7 +64,7 @@ namespace YAML {
 
       static bool decode(const Node& node, Material& rhs) {
           if (!node.IsMap() || node.size() < 4) {
-              return false;
+            return false;
           }
 
           rhs.color = node["color"].as<glm::vec3>();
@@ -72,10 +72,10 @@ namespace YAML {
           rhs.reflection = node["reflection"].as<float>();
           rhs.transparency = node["transparency"].as<float>();
           if (node["refractionIndex"]) {
-              rhs.refractionIndex = node["refractionIndex"].as<float>();
+            rhs.refractionIndex = node["refractionIndex"].as<float>();
           }
           if (node["emmisive"]) {
-              rhs.emmisive = node["emmisive"].as<float>();
+            rhs.emmisive = node["emmisive"].as<float>();
           }
           return true;
       }
@@ -100,8 +100,11 @@ void SceneBuilder::_addFileModel(YAML::Node node) {
 void SceneBuilder::_loadModels(YAML::Node models) {
   for (std::size_t i = 0; i < models.size(); i++) {
     if (models[i]["type"].as<std::string>() == "sphere") {
-      std::cout << "SPHERE 1" << std::endl;
+      std::cout << "SPHERE LOADED" << std::endl;
       _addSphere(models[i]);
+    } else if (models[i]["type"].as<std::string>() == "fileModel") {
+      std::cout << "MODEL LOADED" << std::endl;
+      _addFileModel(models[i]);
     }
   }
 
@@ -131,10 +134,6 @@ std::shared_ptr<Scene> SceneBuilder::createScene() {
   _scene = std::make_shared<Scene>(_device);
 
   _loadModels(_file["models"]);
-/*   auto backWall = std::make_shared<Model>("./assets/backwall.obj", Material { glm::vec3 { 1.f, 1.f, 1.f }, 0.9f, 0.f, 0.f,  }, _device);
-  auto leftWall = std::make_shared<Model>("./assets/leftwall.obj", Material { glm::vec3 { 1.f, 0.f, 0.f }, 0.9f, 0.f, 0.f,  }, _device);
-  auto rightWall = std::make_shared<Model>("./assets/rightwall.obj", Material { glm::vec3 { 0.f, 0.f, 1.f }, 0.9f, 0.f, 0.f,  }, _device);
-  auto ceiling = std::make_shared<Model>("./assets/ceiling.obj", Material { glm::vec3 { 1.f, 1.f, 1.f }, 0.9f, 0.f, 0.f,  }, _device); */
 
   std::shared_ptr<Light> light = std::make_shared<AreaLight>(
     glm::vec3 {0.0f, 3.9f, 7.f},
@@ -163,6 +162,7 @@ std::shared_ptr<Scene> SceneBuilder::createScene() {
     2,
     _device
   );
+
 
   _scene->addLight(light);
   _scene->addLight(light2);
