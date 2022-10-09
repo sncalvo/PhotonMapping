@@ -26,7 +26,7 @@ glm::vec3 Renderer::renderPixel(
   uint_fast32_t y,
   uint_fast32_t width,
   uint_fast32_t height,
-  Color3f &pmColor
+  Color3f* pmColor
 ) {
   // TODO: Create multiple pixel samples randomly and combine results
   return _renderPixelSample(x, y, width, height, pmColor);
@@ -37,7 +37,7 @@ glm::vec3 Renderer::_renderPixelSample(
   uint_fast32_t y,
   uint_fast32_t width,
   uint_fast32_t height,
-  Color3f &pmColor
+  Color3f* pmColor
 ) {
   auto camera = _scene->getCamera();
   auto direction = camera->pixelRayDirection(x, y, width, height);
@@ -45,7 +45,7 @@ glm::vec3 Renderer::_renderPixelSample(
   return _calculateColor(camera->origin, direction, MAX_DEPTH, pmColor, false);
 }
 
-Color3f Renderer::_calculateColor(glm::vec3 origin, glm::vec3 direction, unsigned int depth, Color3f &pmColor, bool in) {
+Color3f Renderer::_calculateColor(glm::vec3 origin, glm::vec3 direction, unsigned int depth, Color3f* pmColor, bool in) {
   auto result = _castRay(origin, direction);
 
   if (!result.has_value()) {
@@ -71,30 +71,31 @@ Color3f Renderer::_calculateColor(glm::vec3 origin, glm::vec3 direction, unsigne
   }
 
   Kdtree::KdNodeVector* neighbors = new std::vector<Kdtree::KdNode>();
+  Kdtree::KdNodeVector* caustic_neighbors = new std::vector<Kdtree::KdNode>();
   std::vector<float> point{ intersection.position.x, intersection.position.y, intersection.position.z };
 //  _tree->range_nearest_neighbors(
 //    point,
 //    MAX_PHOTON_SAMPLING_DISTANCE,
 //    neighbors
 //  );
-  _caustics_tree->range_nearest_neighbors(point, 0.1, neighbors);
+  _caustics_tree->range_nearest_neighbors(point, 0.1, caustic_neighbors);
 
 //  auto predicate = InSameSurfacePredicate(intersection.position, intersection.normal);
 
   glm::vec3 caustics_average{ 0.f };
-  for (auto neighbor : *neighbors) {
+  for (auto neighbor : *caustic_neighbors) {
 //    if (!predicate(neighbor)) {
 //      continue;
 //    }
 
-    auto weight = 1 + glm::distance(neighbor.data.position, intersection.position);
+    auto weight = 1 + glm::distance2(neighbor.data.position, intersection.position);
     caustics_average += neighbor.data.power / weight;
   }
 
-  neighbors.clear();
-  caustics_average *= 0.001f
+  delete caustic_neighbors;
+  caustics_average *= 0.01f;
 
-  _caustics_tree->k_nearest_neighbors(point, PHOTONS_PER_SAMPLE, neighbors);
+  _tree->k_nearest_neighbors(point, PHOTONS_PER_SAMPLE, neighbors);
 
 //  auto predicate = InSameSurfacePredicate(intersection.position, intersection.normal);
 
@@ -104,16 +105,16 @@ Color3f Renderer::_calculateColor(glm::vec3 origin, glm::vec3 direction, unsigne
 //      continue;
 //    }
 
-    auto weight = 1 + glm::distance(neighbor.data.position, intersection.position);
+    auto weight = 1 + glm::distance2(neighbor.data.position, intersection.position);
     average += neighbor.data.power / weight;
   }
-  average /= neighbors->size();
+  average /= 100;
 
   delete neighbors;
 
-  pmColor += average;
-  pmColor += caustics_average;
-  return caustics_average + average * 0.2 + (diffuseColor + specularColor + transparentColor) * 0.8;
+  pmColor[0] += average;
+  pmColor[1] += caustics_average;
+  return caustics_average + average * 0.2f + (diffuseColor + specularColor + transparentColor) * 0.8f;
 }
 
 std::optional<Intersection> Renderer::_castRay(glm::vec3 origin, glm::vec3 direction) {
@@ -149,7 +150,7 @@ Color3f Renderer::_renderDiffuse(Intersection &intersection) {
   return color * intersection.material.diffuse;
 }
 
-Color3f Renderer::_renderSpecular(Intersection &intersection, unsigned int depth, Color3f &pmColor, bool in) {
+Color3f Renderer::_renderSpecular(Intersection &intersection, unsigned int depth, Color3f* pmColor, bool in) {
   if (depth == 0) {
     return Color3f {0.f};
   }
@@ -165,7 +166,7 @@ Color3f Renderer::_renderSpecular(Intersection &intersection, unsigned int depth
 unsigned int invertedNormalCount = 0;
 unsigned int nonInvertedNormalCount = 0;
 
-Color3f Renderer::_renderTransparent(Intersection &intersection, unsigned int depth, Color3f &pmColor, bool in) {
+Color3f Renderer::_renderTransparent(Intersection &intersection, unsigned int depth, Color3f* pmColor, bool in) {
   if (depth == 0) {
     return Color3f { 0.f };
   }

@@ -70,7 +70,8 @@ int main()
   });
 
   auto image = new Image(IMAGE_WIDTH, IMAGE_HEIGHT);
-  auto pmImage = new Image(IMAGE_WIDTH, IMAGE_HEIGHT);
+  auto globalPMImage = new Image(IMAGE_WIDTH, IMAGE_HEIGHT);
+  auto causticsImage = new Image(IMAGE_WIDTH, IMAGE_HEIGHT);
   const auto aspectRatio = (float)image->width / (float)image->height;
   auto camera = std::make_shared<Camera>(aspectRatio, 1.f);
 
@@ -94,16 +95,18 @@ int main()
 
   for (unsigned int x = 0; x < image->width; ++x) {
     for (unsigned int y = 0; y < image->height; ++y) {
-      Color3f pmColor = glm::vec3(0.f);
+      Color3f pmColor[2] = {glm::vec3(0.f), glm::vec3(0.f)};
       Color3f color = renderer.renderPixel(x, y, image->width, image->height, pmColor);
 
       image->writePixel(x, y, color);
-      pmImage->writePixel(x, y, pmColor);
+      globalPMImage->writePixel(x, y, pmColor[0]);
+      causticsImage->writePixel(x, y, pmColor[1]);
     }
   }
 
   image->save("test.png");
-  pmImage->save("pm.png");
+  globalPMImage->save("globalPM.png");
+  causticsImage->save("caustics.png");
 
   rtcReleaseDevice(device);
 

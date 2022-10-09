@@ -31,7 +31,7 @@ private:
   FIBITMAP* _bitmap;
   std::unique_ptr<glm::vec3[]> _colorBuffer;
   std::unique_ptr<Color[]> _pixelBuffer;
-  glm::vec3 _maxColor;
+  glm::vec3 _maxColor{ 0.f };
 
   void _performGammaCorrection();
 };
