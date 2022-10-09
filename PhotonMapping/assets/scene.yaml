@@ -1,0 +1,41 @@
+materials:
+  - &transparent
+    color: [0.8, 0.8, 0.8]
+    diffuse: 0.0
+    reflection: 0.0
+    transparency: 0.9
+    refractiveIndex: 1.5
+  - &reflective
+    color: [0.8f, 0.8f, 0.8f]
+    diffuse: 0.0
+    reflection: 0.9
+    transparency: 0.0
+  - &white
+    color: [1.f, 1.f, 1.f]
+    diffuse: 0.9f
+    reflection: 0.f
+    transparency: 0.f
+
+models:
+  - type: "sphere"
+    stuff: [-0.5, -2.0, 7.0, 1.0]
+    material: *transparent 
+  - type: "sphere"
+    stuff: [2.0, -2.0, 7.0, 1.0]
+    material: *reflective
+
+  - type: "fileModel"
+    path: "./assets/plane.obj"
+    material: white
+  - type: "fileModel"
+    path: "./assets/backwall.obj"
+    material: *white
+  - type: "fileModel"
+    path: "./assets/leftwall.obj"
+    material: *white
+  - type: "fileModel"
+    path: "./assets/rightwall.obj"
+    material: *white
+  - type: "fileModel"
+    path: "./assets/ceiling.obj"
+    material: *white

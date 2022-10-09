@@ -85,17 +85,23 @@ namespace YAML {
 SceneBuilder::SceneBuilder(RTCDevice device, float aspectRatio) : _device(device), _aspectRatio(aspectRatio) {
 }
 
-//Model SceneBuilder::_addSphere(YAML::Node node) {
-//    auto material = node["material"].as<Material>();
-//    auto sphere = std::make_shared<Model>(RTC_GEOMETRY_TYPE_SPHERE_POINT, material, _device, node["stuff"].as<glm::vec4>());
-//    _scene->addModel(sphere);
-//}
+void SceneBuilder::_addSphere(YAML::Node node) {
+    auto material = node["material"].as<Material>();
+    auto sphere = std::make_shared<Model>(RTC_GEOMETRY_TYPE_SPHERE_POINT, material, _device, node["stuff"].as<glm::vec4>());
+    _scene->addModel(sphere);
+}
+
+void SceneBuilder::_addFileModel(YAML::Node node) {
+    auto material = node["material"].as<Material>();
+    auto model = std::make_shared<Model>(node["path"].as<std::string>(), material, _device);
+    _scene->addModel(model);
+}
 
 void SceneBuilder::_loadModels(YAML::Node models) {
   for (std::size_t i = 0; i < models.size(); i++) {
     if (models[i]["type"].as<std::string>() == "sphere") {
       std::cout << "SPHERE 1" << std::endl;
-      //_addSphere(models[i]);
+      _addSphere(models[i]);
     }
   }
 
@@ -117,19 +123,18 @@ void SceneBuilder::_loadModels(YAML::Node models) {
 } */
 
 std::shared_ptr<Scene> SceneBuilder::createScene() {
-  _file = YAML::LoadFile("scene.yaml");
+  _file = YAML::LoadFile("assets/scene.yaml");
+
   if (!_file["width"] || !_file["height"] || !_file["models"] || !_file["lights"]) {
-      throw("MISSING STUFF");
+      //throw("MISSING STUFF");
   }
   _scene = std::make_shared<Scene>(_device);
 
   _loadModels(_file["models"]);
-  auto floor = std::make_shared<Model>("./assets/plane.obj", Material { glm::vec3 { 1.f, 1.f, 1.f }, 0.9f, 0.f, 0.f,  }, _device);
-  auto sphere2 = std::make_shared<Model>(RTC_GEOMETRY_TYPE_SPHERE_POINT, Material { glm::vec3 { 0.8f, 0.8f, 0.8f }, 0.0f, 0.9f, 0.f, }, _device, glm::vec4 { 2.0f, -2.0f, 7.0f, 1.0f });
-  auto backWall = std::make_shared<Model>("./assets/backwall.obj", Material { glm::vec3 { 1.f, 1.f, 1.f }, 0.9f, 0.f, 0.f,  }, _device);
+/*   auto backWall = std::make_shared<Model>("./assets/backwall.obj", Material { glm::vec3 { 1.f, 1.f, 1.f }, 0.9f, 0.f, 0.f,  }, _device);
   auto leftWall = std::make_shared<Model>("./assets/leftwall.obj", Material { glm::vec3 { 1.f, 0.f, 0.f }, 0.9f, 0.f, 0.f,  }, _device);
   auto rightWall = std::make_shared<Model>("./assets/rightwall.obj", Material { glm::vec3 { 0.f, 0.f, 1.f }, 0.9f, 0.f, 0.f,  }, _device);
-  auto ceiling = std::make_shared<Model>("./assets/ceiling.obj", Material { glm::vec3 { 1.f, 1.f, 1.f }, 0.9f, 0.f, 0.f,  }, _device);
+  auto ceiling = std::make_shared<Model>("./assets/ceiling.obj", Material { glm::vec3 { 1.f, 1.f, 1.f }, 0.9f, 0.f, 0.f,  }, _device); */
 
   std::shared_ptr<Light> light = std::make_shared<AreaLight>(
     glm::vec3 {0.0f, 3.9f, 7.f},
@@ -159,14 +164,6 @@ std::shared_ptr<Scene> SceneBuilder::createScene() {
     _device
   );
 
-  _scene->addModel(floor);
-/*   scene->addModel(ball1); */
-/*   scene->addModel(ball2); */
-  _scene->addModel(sphere2);
-  _scene->addModel(backWall);
-  _scene->addModel(leftWall);
-  _scene->addModel(rightWall);
-  _scene->addModel(ceiling);
   _scene->addLight(light);
   _scene->addLight(light2);
   _scene->commit();

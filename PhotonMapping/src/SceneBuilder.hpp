@@ -14,6 +14,7 @@ private:
 	std::vector<std::shared_ptr<Model>> _models;
   std::shared_ptr<Scene> _scene;
 
-  // Model _addSphere(YAML::Node node);
   void _loadModels(YAML::Node models);
+  void _addSphere(YAML::Node node);
+  void _addFileModel(YAML::Node node);
 };
