@@ -39,9 +39,9 @@ glm::vec3 randomNormalizedVector2() {
 }
 
 void PhotonMapper::makeMap(const Camera& camera) const {
-  auto image = Image(854, 480);
-  auto depthImage = Image(854, 480);
-  auto coloredImage = Image(854, 480);
+  auto image = Image(IMAGE_WIDTH, IMAGE_HEIGHT);
+  auto depthImage = Image(IMAGE_WIDTH, IMAGE_HEIGHT);
+  auto coloredImage = Image(IMAGE_WIDTH, IMAGE_HEIGHT);
 
   for (auto hit : _hits) {
     Kdtree::KdNodeVector* neighbors = new std::vector<Kdtree::KdNode>();

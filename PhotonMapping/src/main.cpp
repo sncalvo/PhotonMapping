@@ -67,7 +67,7 @@ int main()
     0.0f,
   });
 
-  auto image = new Image(854, 480);
+  auto image = new Image(IMAGE_WIDTH, IMAGE_HEIGHT);
   const auto aspectRatio = (float)image->width / (float)image->height;
   auto camera = std::make_shared<Camera>(aspectRatio, 1.f);
 

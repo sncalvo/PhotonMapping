@@ -37,7 +37,7 @@ public:
   /// - Parameters:
   ///   - aspectRatio: aspect ratio for the camera
   ///   - focalLength: focal length for the camera (how much zoom there is, causing the image to be distorted)
-  Camera(float aspectRatio, float focalLength) : Camera(aspectRatio, 2.f, focalLength, {0.f, 0.f, -1.f}) {};
+  Camera(float aspectRatio, float focalLength) : Camera(aspectRatio, 2.f, focalLength, {0.f, 0.f, 1.f}) {};
 
   glm::mat4 getProjectionMatrix() const {
     return glm::perspective(glm::radians<float>(90.f), _aspectRatio, 0.1f, 100.0f);
