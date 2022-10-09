@@ -27,6 +27,7 @@ project "PhotonMapping"
     links { "embree3" }
     links { "assimp" }
     links { "freeimage" }
+    links { "yaml-cpp" }
   end
 
   if os.host() == "macosx" then
