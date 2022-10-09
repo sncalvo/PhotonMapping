@@ -85,7 +85,24 @@ void PhotonMapper::useScene(std::shared_ptr<Scene> scene) {
   _scene = scene;
 }
 
-void PhotonMapper::makePhotonMap(PhotonMap map) {
+void PhotonMapper::makeGlobalPhotonMap(PhotonMap map) {
+  _nodes.clear();
+  for (auto light : _scene->getLights()) {
+    for (unsigned int i = 0; i < PHOTON_LIMIT; i++) {
+      // TODO: We know we won't manage disperse scenes, so let's only generate photons with directions to elements in the scene
+      auto direction = randomNormalizedVector();
+
+      auto position = light.position;
+
+      _shootPhoton(position, direction, light.color, 0, false, false);
+    }
+  }
+
+  _tree = std::make_shared<Kdtree::KdTree>(&_nodes);
+}
+
+void PhotonMapper::makeCausticsPhotonMap(PhotonMap map) {
+  _nodes.clear();
   for (auto light : _scene->getLights()) {
     for (unsigned int i = 0; i < PHOTON_LIMIT; i++) {
       // TODO: We know we won't manage disperse scenes, so let's only generate photons with directions to elements in the scene
@@ -97,11 +114,7 @@ void PhotonMapper::makePhotonMap(PhotonMap map) {
     }
   }
 
-  _buildKdTree();
-}
-
-void PhotonMapper::_buildKdTree() {
-  _tree = std::make_shared<Kdtree::KdTree>(&_nodes);
+  _caustics_tree = std::make_shared<Kdtree::KdTree>(&_nodes);
 }
 
 void PhotonMapper::_shootPhoton(const glm::vec3 origin, const glm::vec3 direction,

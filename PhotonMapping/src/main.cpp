@@ -85,10 +85,12 @@ int main()
 
   photonMapper.useScene(scene);
 
-  photonMapper.makePhotonMap(PhotonMap::Global);
+  photonMapper.makeGlobalPhotonMap(PhotonMap::Global);
+  photonMapper.makeCausticsPhotonMap(PhotonMap::Global);
   photonMapper.makeMap(*camera);
 
   renderer.setTree(photonMapper.getTree());
+  renderer.setCausticsTree(photonMapper.getCausticsTree());
 
   for (unsigned int x = 0; x < image->width; ++x) {
     for (unsigned int y = 0; y < image->height; ++y) {

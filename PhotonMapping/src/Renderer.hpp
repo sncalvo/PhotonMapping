@@ -48,6 +48,8 @@ public:
 
   void setTree(std::shared_ptr<Kdtree::KdTree> tree);
 
+  void setCausticsTree(std::shared_ptr<Kdtree::KdTree> tree);
+
 private:
   Color3f _renderPixelSample(uint_fast32_t x, uint_fast32_t y, uint_fast32_t width, uint_fast32_t height, Color3f &pmColor);
 
@@ -61,4 +63,5 @@ private:
 
   std::shared_ptr<Scene> _scene;
   std::shared_ptr<Kdtree::KdTree> _tree;
+  std::shared_ptr<Kdtree::KdTree> _caustics_tree;
 };

@@ -17,6 +17,10 @@ void Renderer::setTree(std::shared_ptr<Kdtree::KdTree> tree) {
   _tree = tree;
 }
 
+void Renderer::setCausticsTree(std::shared_ptr<Kdtree::KdTree> tree) {
+  _caustics_tree = tree;
+}
+
 glm::vec3 Renderer::renderPixel(
   uint_fast32_t x,
   uint_fast32_t y,
@@ -73,7 +77,24 @@ Color3f Renderer::_calculateColor(glm::vec3 origin, glm::vec3 direction, unsigne
 //    MAX_PHOTON_SAMPLING_DISTANCE,
 //    neighbors
 //  );
-  _tree->range_nearest_neighbors(point, 0.1, neighbors);
+  _caustics_tree->range_nearest_neighbors(point, 0.1, neighbors);
+
+//  auto predicate = InSameSurfacePredicate(intersection.position, intersection.normal);
+
+  glm::vec3 caustics_average{ 0.f };
+  for (auto neighbor : *neighbors) {
+//    if (!predicate(neighbor)) {
+//      continue;
+//    }
+
+    auto weight = 1 + glm::distance(neighbor.data.position, intersection.position);
+    caustics_average += neighbor.data.power / weight;
+  }
+
+  neighbors.clear();
+  caustics_average *= 0.001f
+
+  _caustics_tree->k_nearest_neighbors(point, PHOTONS_PER_SAMPLE, neighbors);
 
 //  auto predicate = InSameSurfacePredicate(intersection.position, intersection.normal);
 
@@ -86,11 +107,13 @@ Color3f Renderer::_calculateColor(glm::vec3 origin, glm::vec3 direction, unsigne
     auto weight = 1 + glm::distance(neighbor.data.position, intersection.position);
     average += neighbor.data.power / weight;
   }
+  average /= neighbors->size();
 
   delete neighbors;
 
   pmColor += average;
-  return average * 0.001f + (diffuseColor + specularColor + transparentColor);
+  pmColor += caustics_average;
+  return caustics_average + average * 0.2 + (diffuseColor + specularColor + transparentColor) * 0.8;
 }
 
 std::optional<Intersection> Renderer::_castRay(glm::vec3 origin, glm::vec3 direction) {
