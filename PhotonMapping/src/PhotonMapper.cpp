@@ -6,7 +6,7 @@
 #include "Constants.hpp"
 #include "Image.hpp"
 
-constexpr unsigned int PHOTON_LIMIT = 100000;
+constexpr unsigned int PHOTON_LIMIT = 500000;
 
 PhotonMapper::PhotonMapper() {
   
@@ -95,10 +95,6 @@ void PhotonMapper::makePhotonMap(PhotonMap map) {
     for (unsigned int i = 0; i < PHOTON_LIMIT; i++) {
       // TODO: We know we won't manage disperse scenes, so let's only generate photons with directions to elements in the scene
       auto direction = randomNormalizedVector();
-
-      if (direction.y > 0.f) {
-        direction.y = -direction.y;
-      }
 
       auto position = light.position;
 

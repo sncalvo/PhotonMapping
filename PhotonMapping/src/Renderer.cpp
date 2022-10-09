@@ -69,12 +69,13 @@ Color3f Renderer::_calculateColor(glm::vec3 origin, glm::vec3 direction, unsigne
   }
 
   Kdtree::KdNodeVector* neighbors = new std::vector<Kdtree::KdNode>();
-  std::vector<float> sample_point{ intersection.position.x, intersection.position.y, intersection.position.z };
-  _tree->range_nearest_neighbors(
-    sample_point,
-    MAX_PHOTON_SAMPLING_DISTANCE,
-    neighbors
-  );
+  std::vector<float> point{ intersection.position.x, intersection.position.y, intersection.position.z };
+//  _tree->range_nearest_neighbors(
+//    point,
+//    MAX_PHOTON_SAMPLING_DISTANCE,
+//    neighbors
+//  );
+  _tree->k_nearest_neighbors(point, 100, neighbors);
 
 //  auto predicate = InSameSurfacePredicate(intersection.position, intersection.normal);
 

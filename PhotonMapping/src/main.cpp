@@ -59,15 +59,7 @@ int main()
   scene->addModel(ceiling);
   scene->commit();
   scene->addLight(Light {
-    glm::vec3 {-2.f, 2.0f, 1.f},
-    glm::vec3 {1.f, 1.f, 1.f},
-    1.f,
-    0.2f,
-    0.09f,
-    0.0f,
-  });
-  scene->addLight(Light {
-    glm::vec3 {2.f, 2.0f, 1.f},
+    glm::vec3 {0.f, 2.f, 5.f},
     glm::vec3 {1.f, 1.f, 1.f},
     1.f,
     0.2f,
@@ -75,7 +67,7 @@ int main()
     0.0f,
   });
 
-  auto image = new Image(1920, 1080);
+  auto image = new Image(1366, 768);
   const auto aspectRatio = (float)image->width / (float)image->height;
   auto camera = std::make_shared<Camera>(aspectRatio, 1.f);
 
