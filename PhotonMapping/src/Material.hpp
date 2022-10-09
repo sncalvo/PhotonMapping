@@ -54,11 +54,11 @@ struct Material {
   }
 
   glm::vec3 specularPower(glm::vec3 photonColor) const {
-    return photonColor * specularColor() / specularMaxPower(diffuseColor());
+    return photonColor * specularColor() / specularMaxPower(specularColor());
   }
 
   glm::vec3 transparencyPower(glm::vec3 photonColor) const {
-    return photonColor * transparencyColor() / transparencyMaxPower(diffuseColor());
+    return photonColor * transparencyColor() / transparencyMaxPower(transparencyColor());
   }
 
   glm::vec3 diffuseColor() const {
