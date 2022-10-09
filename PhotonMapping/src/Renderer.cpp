@@ -93,7 +93,7 @@ Color3f Renderer::_calculateColor(glm::vec3 origin, glm::vec3 direction, unsigne
   }
 
   delete caustic_neighbors;
-  caustics_average *= 0.01f;
+  caustics_average *= 0.0005f;
 
   _tree->k_nearest_neighbors(point, PHOTONS_PER_SAMPLE, neighbors);
 
@@ -108,7 +108,7 @@ Color3f Renderer::_calculateColor(glm::vec3 origin, glm::vec3 direction, unsigne
     auto weight = 1 + glm::distance2(neighbor.data.position, intersection.position);
     average += neighbor.data.power / weight;
   }
-  average /= 1000;
+  average /= 100;
 
   delete neighbors;
 

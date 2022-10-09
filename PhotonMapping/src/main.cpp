@@ -41,7 +41,7 @@ int main()
   auto scene = std::make_shared<Scene>(device);
 
   auto floor = std::make_shared<Model>("./assets/plane.obj", Material { glm::vec3 { 1.f, 1.f, 1.f }, 0.9f, 0.f, 0.f,  }, device);
-  auto sphere = std::make_shared<Model>(RTC_GEOMETRY_TYPE_SPHERE_POINT, Material { glm::vec3 { 0.8f, 0.8f, 0.8f }, 0.0f, 0.0f, 0.9f, 2.0f }, device, glm::vec4 { -0.5f, -2.0f, 7.0f, 1.0f });
+  auto sphere = std::make_shared<Model>(RTC_GEOMETRY_TYPE_SPHERE_POINT, Material { glm::vec3 { 0.8f, 0.8f, 0.8f }, 0.0f, 0.0f, 0.9f, 1.5f }, device, glm::vec4 { -0.5f, -2.0f, 7.0f, 1.0f });
   auto sphere2 = std::make_shared<Model>(RTC_GEOMETRY_TYPE_SPHERE_POINT, Material { glm::vec3 { 0.8f, 0.8f, 0.8f }, 0.0f, 0.9f, 0.f, }, device, glm::vec4 { 2.0f, -2.0f, 7.0f, 1.0f });
   auto backWall = std::make_shared<Model>("./assets/backwall.obj", Material { glm::vec3 { 1.f, 1.f, 1.f }, 0.9f, 0.f, 0.f,  }, device);
   auto leftWall = std::make_shared<Model>("./assets/leftwall.obj", Material { glm::vec3 { 1.f, 0.f, 0.f }, 0.9f, 0.f, 0.f,  }, device);
