@@ -17,7 +17,9 @@ public:
 
   void useScene(std::shared_ptr<Scene> scene);
 
-  void makePhotonMap(PhotonMap map);
+  void makeGlobalPhotonMap(PhotonMap map);
+
+  void makeCausticsPhotonMap(PhotonMap map);
 
   void makeMap(const Camera& camera) const;
 
@@ -25,15 +27,22 @@ public:
     return _tree;
   }
 
+  std::shared_ptr<Kdtree::KdTree> getCausticsTree() {
+    return _tree;
+  }
+
 private:
   std::shared_ptr<Kdtree::KdTree> _tree;
+  std::shared_ptr<Kdtree::KdTree> _caustics_tree;
   Kdtree::KdNodeVector _nodes;
+  Kdtree::KdNodeVector _caustic_nodes;
 
   std::shared_ptr<Scene> _scene;
 
-  void _buildKdTree();
+  void _shootPhoton(const glm::vec3 origin, const glm::vec3 direction, const glm::vec3 power, unsigned int depth, bool isCausticMode, bool in);
 
-  void _shootPhoton(const glm::vec3 origin, const glm::vec3 direction, const glm::vec3 power, unsigned int depth);
+  void _addHit(PhotonHit photonHit, bool isCausticMode);
 
   std::vector<PhotonHit> _hits;
+  std::vector<PhotonHit> _caustic_hits;
 };

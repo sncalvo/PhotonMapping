@@ -40,7 +40,7 @@ public:
     ///   - y: vertical coordinate for the requested pixel
     ///   - width: horizontal size for the image
     ///   - height: vertical size for the image
-  Color3f renderPixel(uint_fast32_t x, uint_fast32_t y, uint_fast32_t width, uint_fast32_t height);
+  Color3f renderPixel(uint_fast32_t x, uint_fast32_t y, uint_fast32_t width, uint_fast32_t height, Color3f* pmColor);
 
     /// Sets the scene used by the renderer
     /// - Parameter scene: shared scene pointer
@@ -48,17 +48,20 @@ public:
 
   void setTree(std::shared_ptr<Kdtree::KdTree> tree);
 
-private:
-  Color3f _renderPixelSample(uint_fast32_t x, uint_fast32_t y, uint_fast32_t width, uint_fast32_t height);
+  void setCausticsTree(std::shared_ptr<Kdtree::KdTree> tree);
 
-  Color3f _calculateColor(glm::vec3 origin, glm::vec3 direction, unsigned int depth);
+private:
+  Color3f _renderPixelSample(uint_fast32_t x, uint_fast32_t y, uint_fast32_t width, uint_fast32_t height, Color3f* pmColor);
+
+  Color3f _calculateColor(glm::vec3 origin, glm::vec3 direction, unsigned int depth, Color3f* pmColor, bool in);
 
   std::optional<Intersection> _castRay(glm::vec3 origin, glm::vec3 direction);
 
   Color3f _renderDiffuse(Intersection &intersection);
-  Color3f _renderSpecular(Intersection &intersection, unsigned int depth);
-  Color3f _renderTransparent(Intersection &intersection, unsigned int depth);
+  Color3f _renderSpecular(Intersection &intersection, unsigned int depth, Color3f* pmColor, bool in);
+  Color3f _renderTransparent(Intersection &intersection, unsigned int depth, Color3f* pmColor, bool in);
 
   std::shared_ptr<Scene> _scene;
   std::shared_ptr<Kdtree::KdTree> _tree;
+  std::shared_ptr<Kdtree::KdTree> _caustics_tree;
 };
