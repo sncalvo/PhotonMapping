@@ -27,6 +27,15 @@ public:
   ///    - material: material for mesh of primitive
   Model(const RTCGeometryType geometryType, Material material, RTCDevice device, glm::vec4 transform);
 
+  /// Creates a model with a embree quad primitive
+  /// - Parameters:
+  ///   - material: material for mesh of primitive
+  ///   - device: device for mesh creation
+  ///   - corner: corner of quad
+  ///   - uvec: vector for quad direction of plane that defines it
+  ///   - vvec: vector for quad direction of plane that defines it
+  Model(Material material, RTCDevice device, glm::vec3 corner, glm::vec3 uvec, glm::vec3 vvec);
+
   /// Commits all meshes in the scene for ray tracing
   /// - Parameter scene: scene used to commit meshes
   void commit(RTCScene scene) const;
@@ -42,6 +51,7 @@ private:
 
   void _loadModel(std::string const &path, Material material);
   void _loadPrimitive(const RTCGeometryType geometryType, glm::vec4 transform, Material material);
+  void _loadQuad(Material material, glm::vec3 corner, glm::vec3 uvec, glm::vec3 vvec);
 
   void _processNode(aiNode *node, const aiScene *scene, Material material);
 

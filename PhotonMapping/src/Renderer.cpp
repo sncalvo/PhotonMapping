@@ -44,6 +44,10 @@ Color3f Renderer::_calculateColor(glm::vec3 origin, glm::vec3 direction, unsigne
 
   auto intersection = result.value();
 
+  if (intersection.material.emmisive) {
+    return Color3f { 1.f };
+  }
+
   Color3f diffuseColor { 0.f };
   Color3f specularColor { 0.f };
   Color3f transparentColor { 0.f };

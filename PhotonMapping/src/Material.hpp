@@ -20,6 +20,7 @@ struct Material {
   float transparency;
 
   float refractionIndex = 0.f;
+  bool emmisive = false;
 
   float diffuseMaxPower(glm::vec3 photonColor) const {
     auto color = diffuseColor();

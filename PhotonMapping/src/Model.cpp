@@ -10,6 +10,10 @@ Model::Model(const RTCGeometryType geometryType, Material material, RTCDevice de
   _loadPrimitive(geometryType, transform, material);
 }
 
+Model::Model(Material material, RTCDevice device, glm::vec3 corner, glm::vec3 uvec, glm::vec3 vvec) : _device(device) {
+  _loadQuad(material, corner, uvec, vvec);
+}
+
 void Model::commit(RTCScene scene) const  {
   for (auto mesh : _meshes) {
     mesh.commit(scene);
@@ -22,6 +26,13 @@ std::unordered_map<unsigned int, Material> Model::getMaterialsMap() const {
 
 void Model::_loadPrimitive(const RTCGeometryType geometryType, glm::vec4 transform, Material material) {
   auto mesh = Mesh(geometryType, _device, transform, material);
+
+  _meshes.push_back(mesh);
+  _materials.insert(mesh.getMaterialPair());
+}
+
+void Model::_loadQuad(Material material, glm::vec3 corner, glm::vec3 uvec, glm::vec3 vvec) {
+  auto mesh = Mesh(material, corner, uvec, vvec, _device);
 
   _meshes.push_back(mesh);
   _materials.insert(mesh.getMaterialPair());

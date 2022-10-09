@@ -58,9 +58,10 @@ int main()
     0.09f,
     0.0f,
     glm::vec3{0.5, 0.f, 0.f},
-    glm::vec3{0.f, 0.f, 1.f},
+    glm::vec3{0.f, 0.f, 0.5f},
     3,
-    2
+    2,
+    device
   );
 
   std::shared_ptr<Light> light2 = std::make_shared<AreaLight>(
@@ -70,10 +71,11 @@ int main()
     0.2f,
     0.09f,
     0.0f,
-    glm::vec3{0.0f, 7.f, 0.f},
-    glm::vec3{0.f, 0.f, 1.f},
+    glm::vec3{0.0f, 0.5f, 0.f},
+    glm::vec3{0.f, 0.f, 0.5},
     3,
-    2
+    2,
+    device
   );
   
   scene->addModel(floor);
@@ -85,10 +87,10 @@ int main()
   scene->addModel(leftWall);
   scene->addModel(rightWall);
   scene->addModel(ceiling);
-  scene->commit();
   scene->addLight(light);
   scene->addLight(light2);
-
+  scene->commit();
+  
   auto image = new Image(IMAGE_WIDTH, IMAGE_HEIGHT);
   const auto aspectRatio = (float)image->width / (float)image->height;
   auto camera = std::make_shared<Camera>(aspectRatio, 1.f);

@@ -1,15 +1,19 @@
 #pragma once
 
 #include <vector>
+#include <memory>
 
 #include <glm/glm.hpp>
 #include <embree3/rtcore.h>
+
+class Model;
 
 struct Intersection;
 
 class Light {
 public:
   virtual glm::vec3 intensityFrom(Intersection& intersection, RTCScene scene) const = 0;
+  virtual std::shared_ptr<Model> getModel() const = 0;
 
   glm::vec3 position, color;
 
@@ -33,24 +37,24 @@ public:
     Light(position, color, intensity, constantDecay, linearDecay, quadraticDecay) {}
 
   glm::vec3 intensityFrom(Intersection& intersection, RTCScene scene) const;
+
+  std::shared_ptr<Model> getModel() const;
 };
 
 class AreaLight : public Light {
 public:
   AreaLight(
     glm::vec3 position, glm::vec3 color, float intensity, float constantDecay, float linearDecay,
-    float quadraticDecay, glm::vec3 uvec, glm::vec3 vvec, size_t usteps, size_t vsteps
-  ) :
-    Light(position, color, intensity, constantDecay, linearDecay, quadraticDecay),
-    _uvec(uvec), _vvec(vvec), _usteps(usteps), _vsteps(vsteps) {
-      _corner = position - vvec * 0.5f - uvec * 0.5f;
-      _udirection = uvec / (float)usteps;
-      _vdirection = vvec / (float)vsteps;
-    }
+    float quadraticDecay, glm::vec3 uvec, glm::vec3 vvec, size_t usteps, size_t vsteps, RTCDevice device
+  );
 
   glm::vec3 intensityFrom(Intersection& intersection, RTCScene scene) const;
 
+  std::shared_ptr<Model> getModel() const;
+
 private:
+  std::shared_ptr<Model> _model;
+
   glm::vec3 _corner;
 
   glm::vec3 _uvec;
