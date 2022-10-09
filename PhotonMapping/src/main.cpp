@@ -49,7 +49,35 @@ int main()
   auto leftWall = std::make_shared<Model>("./assets/leftwall.obj", Material { glm::vec3 { 1.f, 0.f, 0.f }, 0.9f, 0.f, 0.f,  }, device);
   auto rightWall = std::make_shared<Model>("./assets/rightwall.obj", Material { glm::vec3 { 0.f, 0.f, 1.f }, 0.9f, 0.f, 0.f,  }, device);
   auto ceiling = std::make_shared<Model>("./assets/ceiling.obj", Material { glm::vec3 { 1.f, 1.f, 1.f }, 0.9f, 0.f, 0.f,  }, device);
-  
+
+  std::shared_ptr<Light> light = std::make_shared<AreaLight>(
+    glm::vec3 {0.0f, 3.9f, 7.f},
+    glm::vec3 {1.f, 1.f, 1.f},
+    1.f,
+    0.2f,
+    0.09f,
+    0.042f,
+    glm::vec3{0.5, 0.f, 0.f},
+    glm::vec3{0.f, 0.f, 0.5f},
+    3,
+    2,
+    device
+  );
+
+  std::shared_ptr<Light> light2 = std::make_shared<AreaLight>(
+    glm::vec3 {-3.f, 0.f, 6.f},
+    glm::vec3 {1.f, 1.f, 1.f},
+    1.f,
+    0.2f,
+    0.09f,
+    0.042f,
+    glm::vec3{0.0f, 0.5f, 0.f},
+    glm::vec3{0.f, 0.f, 0.5},
+    3,
+    2,
+    device
+  );
+
   scene->addModel(floor);
 /*   scene->addModel(ball1); */
 /*   scene->addModel(ball2); */
@@ -59,15 +87,9 @@ int main()
   scene->addModel(leftWall);
   scene->addModel(rightWall);
   scene->addModel(ceiling);
+  scene->addLight(light);
+  scene->addLight(light2);
   scene->commit();
-  scene->addLight(Light {
-    glm::vec3 {0.0f, 0.1f, 7.5f},
-    glm::vec3 {1.f, 1.f, 1.f},
-    1.f,
-    0.2f,
-    0.09f,
-    0.042f,
-  });
 
   auto image = new Image(IMAGE_WIDTH, IMAGE_HEIGHT);
   auto globalPMImage = new Image(IMAGE_WIDTH, IMAGE_HEIGHT);

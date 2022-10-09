@@ -23,10 +23,10 @@ public:
   
   /// Adds light to the scene
   /// - Parameter light: Light to be added
-  void addLight(Light light);
+  void addLight(std::shared_ptr<Light> light);
 
   /// Returns all lights in the scene
-  std::vector<Light> getLights() const;
+  std::vector<std::shared_ptr<Light>> getLights() const;
 
   /// Commits scene with models attached
   void commit();
@@ -49,6 +49,6 @@ public:
 private:
   std::vector<std::shared_ptr<Model>> _models;
   std::unordered_map<unsigned int, Material> _materials;
-  std::vector<Light> _lights;
+  std::vector<std::shared_ptr<Light>> _lights;
   std::shared_ptr<Camera> _camera;
 };

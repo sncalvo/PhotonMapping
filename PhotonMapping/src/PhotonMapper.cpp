@@ -7,7 +7,7 @@
 #include "Image.hpp"
 
 PhotonMapper::PhotonMapper() {
-  
+
 }
 
 glm::vec3 randomNormalizedVector() {
@@ -43,77 +43,84 @@ void PhotonMapper::makeMap(const Camera& camera) const {
   auto causticsImage = Image(IMAGE_WIDTH, IMAGE_HEIGHT);
   auto depthImage = Image(IMAGE_WIDTH, IMAGE_HEIGHT);
 
-  for (auto hit : _hits) {
-    Kdtree::KdNodeVector* neighbors = new std::vector<Kdtree::KdNode>();
+  if (SHOULD_PRINT_HIT_PHOTON_MAP || SHOULD_PRINT_DEPTH_PHOTON_MAP) {
+    for (auto hit : _hits) {
+      Kdtree::KdNodeVector* neighbors = new std::vector<Kdtree::KdNode>();
 
-    _tree->k_nearest_neighbors(
-      std::vector{
-        hit.position.x,
-        hit.position.y,
-        hit.position.z
-      }, 1, neighbors
-    );
+      _tree->k_nearest_neighbors(
+                                 std::vector{
+                                   hit.position.x,
+                                   hit.position.y,
+                                   hit.position.z
+                                 }, 1, neighbors
+                                 );
 
-//    if (hit.power.r > 0.9f && hit.power.g > 0.9f && hit.power.b > 0.9f) {
-//      continue;
-//    }
+        //    if (hit.power.r > 0.9f && hit.power.g > 0.9f && hit.power.b > 0.9f) {
+        //      continue;
+        //    }
 
-    Kdtree::KdNode node = neighbors->at(0);
-    auto photon = node.data;
+      Kdtree::KdNode node = neighbors->at(0);
+      auto photon = node.data;
 
-    auto cameraPointPosition = camera.getProjectionMatrix() * camera.getViewMatrix() * glm::vec4(photon.position, 1.f);
+      auto cameraPointPosition = camera.getProjectionMatrix() * camera.getViewMatrix() * glm::vec4(photon.position, 1.f);
 
-    auto u = image.width - ((cameraPointPosition.x * image.width) / (2.f * cameraPointPosition.w) + image.width / 2.f);
-    auto v = (cameraPointPosition.y * image.height) / (2.f * cameraPointPosition.w) + image.height / 2.f;
+      auto u = image.width - ((cameraPointPosition.x * image.width) / (2.f * cameraPointPosition.w) + image.width / 2.f);
+      auto v = (cameraPointPosition.y * image.height) / (2.f * cameraPointPosition.w) + image.height / 2.f;
 
-    if (u >= image.width || u < 0 || v >= image.height || v < 0) {
-      continue;
+      if (u >= image.width || u < 0 || v >= image.height || v < 0) {
+        continue;
+      }
+
+      if (SHOULD_PRINT_HIT_PHOTON_MAP)
+        image.writePixel((unsigned int)u, (unsigned int)v, photon.power);
+
+      if (SHOULD_PRINT_DEPTH_PHOTON_MAP)
+        depthImage.writePixel((unsigned int)u, (unsigned int)v, glm::vec3 { photon.depth * 40.f });
+
+      delete neighbors;
     }
 
-    image.writePixel((unsigned int)u, (unsigned int)v, photon.power);
-    depthImage.writePixel((unsigned int)u, (unsigned int)v, glm::vec3 { photon.depth * 40.f });
-
-    delete neighbors;
-  }
-
-  for (auto hit : _caustic_hits) {
-    Kdtree::KdNodeVector* caustic_neighbors = new std::vector<Kdtree::KdNode>();
-
-    _caustics_tree->k_nearest_neighbors(
-      std::vector{
-        hit.position.x,
-        hit.position.y,
-        hit.position.z
-      }, 1, caustic_neighbors
-    );
-
-//    if (hit.power.r > 0.9f && hit.power.g > 0.9f && hit.power.b > 0.9f) {
-//      continue;
-//    }
-
-    Kdtree::KdNode node = caustic_neighbors->at(0);
-    auto photon = node.data;
-
-    auto cameraPointPosition = camera.getProjectionMatrix() * camera.getViewMatrix() * glm::vec4(photon.position, 1.f);
-
-    auto u = image.width - ((cameraPointPosition.x * image.width) / (2.f * cameraPointPosition.w) + image.width / 2.f);
-    auto v = (cameraPointPosition.y * image.height) / (2.f * cameraPointPosition.w) + image.height / 2.f;
-
-    if (u >= image.width || u < 0 || v >= image.height || v < 0) {
-      continue;
+    if (SHOULD_PRINT_HIT_PHOTON_MAP) {
+      image.save("photon-hits.jpeg");
+      std::cout << "Saved photon-hits.jpeg" << std::endl;
     }
 
-    causticsImage.writePixel((unsigned int)u, (unsigned int)v, photon.power);
-
-    delete caustic_neighbors;
+    if (SHOULD_PRINT_DEPTH_PHOTON_MAP) {
+      depthImage.save("photon-hits-depth.jpeg");
+      std::cout << "Saved photon-hits-depth.jpeg" << std::endl;
+    }
   }
 
-  image.save("photon-hits.jpeg");
-  std::cout << "Saved photon-hits.jpeg" << std::endl;
-  depthImage.save("photon-hits-depth.jpeg");
-  std::cout << "Saved photon-hits-depth.jpeg" << std::endl;
-  causticsImage.save("caustics-photon-hits.jpeg");
-  std::cout << "Saved caustics-photon-hits.jpeg" << std::endl;
+  if (SHOULD_PRINT_DIFFUSE_PHOTON_MAP) {
+    for (auto hit : _caustic_hits) {
+      Kdtree::KdNodeVector* caustic_neighbors = new std::vector<Kdtree::KdNode>();
+
+      _caustics_tree->k_nearest_neighbors(std::vector { hit.position.x, hit.position.y, hit.position.z },
+                                            1, caustic_neighbors);
+
+        // if (hit.power.r > 0.9f && hit.power.g > 0.9f && hit.power.b > 0.9f) {
+        //   continue;
+        // }
+
+      Kdtree::KdNode node = caustic_neighbors->at(0);
+      auto photon = node.data;
+      auto cameraPointPosition = camera.getProjectionMatrix() * camera.getViewMatrix() * glm::vec4(photon.position, 1.f);
+
+      auto u = image.width - ((cameraPointPosition.x * image.width) / (2.f * cameraPointPosition.w) + image.width / 2.f);
+      auto v = (cameraPointPosition.y * image.height) / (2.f * cameraPointPosition.w) + image.height / 2.f;
+
+      if (u >= image.width || u < 0 || v >= image.height || v < 0) {
+        continue;
+      }
+
+      causticsImage.writePixel((unsigned int)u, (unsigned int)v, photon.power);
+
+      delete caustic_neighbors;
+    }
+
+    causticsImage.save("caustics-photon-hits.jpeg");
+    std::cout << "Saved caustics-photon-hits.jpeg" << std::endl;
+  }
 }
 
 void PhotonMapper::useScene(std::shared_ptr<Scene> scene) {
@@ -126,9 +133,9 @@ void PhotonMapper::makeGlobalPhotonMap(PhotonMap map) {
       // TODO: We know we won't manage disperse scenes, so let's only generate photons with directions to elements in the scene
       auto direction = randomNormalizedVector();
 
-      auto position = light.position;
+      auto position = light->position;
 
-      _shootPhoton(position, direction, light.color, 0, false, false);
+      _shootPhoton(position, direction, light->color, 0, false, false);
     }
   }
 
@@ -142,9 +149,9 @@ void PhotonMapper::makeCausticsPhotonMap(PhotonMap map) {
       // TODO: We know we won't manage disperse scenes, so let's only generate photons with directions to elements in the scene
       auto direction = randomNormalizedVector();
 
-      auto position = light.position;
+      auto position = light->position;
 
-      _shootPhoton(position, direction, light.color, 0, true, false);
+      _shootPhoton(position, direction, light->color, 0, true, false);
     }
   }
 
