@@ -30,6 +30,8 @@ public:
 
   Mesh(const RTCGeometryType type, RTCDevice device, glm::vec4 transform, Material material);
 
+  Mesh(Material material, glm::vec3 corner, glm::vec3 uvec, glm::vec3 vvec, RTCDevice);
+
   /// Commits geometries to the ray tracing scene
   /// - Parameter scene: ray tracing scene that will contain the geometries
   void commit(RTCScene scene);
@@ -47,4 +49,5 @@ private:
   /// initializes all the buffer objects/arrays
   void _setupMesh(RTCDevice device, Material material);
   void _setupPrimitive(const RTCGeometryType type, RTCDevice device, glm::vec4 transform, Material material);
+  void _setupQuad(Material material, glm::vec3 corner, glm::vec3 uvec, glm::vec3 vvec, RTCDevice device);
 };

@@ -15,6 +15,10 @@ Mesh::Mesh(const RTCGeometryType type, RTCDevice device, glm::vec4 transform, Ma
   _setupPrimitive(type, device, transform, material);
 }
 
+Mesh::Mesh(Material material, glm::vec3 corner, glm::vec3 uvec, glm::vec3 vvec, RTCDevice device) {
+  _setupQuad(material, corner, uvec, vvec, device);
+}
+
 std::pair<unsigned int, Material> Mesh::getMaterialPair() const {
   // NOTE: THIS IS NOT MULTI THREAD SAFE
   // THERE IS NO DOC ON HOW GEOMETRY ID IS ASSIGNED. BUT THERE IS SOME EXAMPLE WHERE THEY JUST USE CONSECUTIVE NUMBERS
@@ -61,6 +65,23 @@ void Mesh::_setupPrimitive(const RTCGeometryType type, RTCDevice device, glm::ve
   buffer[1] = transform.y;
   buffer[2] = transform.z;
   buffer[3] = transform.w;
+
+  _material = material;
+}
+
+void Mesh::_setupQuad(Material material, glm::vec3 corner, glm::vec3 uvec, glm::vec3 vvec, RTCDevice device) {
+  _geometry = rtcNewGeometry(device, RTC_GEOMETRY_TYPE_QUAD);
+
+  float* vb = (float*) rtcSetNewGeometryBuffer(_geometry,
+                                               RTC_BUFFER_TYPE_VERTEX, 0, RTC_FORMAT_FLOAT3, 3*sizeof(float), 4);
+  vb[0] = corner.x; vb[1] = corner.y; vb[2] = corner.z; // 1st vertex
+  vb[3] = corner.x + uvec.x; vb[4] = corner.y + uvec.y; vb[5] = corner.z + uvec.z; // 2nd vertex
+  vb[6] = corner.x + vvec.x + uvec.x; vb[7] = corner.y + vvec.y + uvec.y; vb[8] = corner.z + vvec.z + uvec.z; // 3rd vertex
+  vb[9] = corner.x + vvec.x; vb[10] = corner.y + vvec.y; vb[11] = corner.z + vvec.z; // 4rd vertex
+
+  unsigned* ib = (unsigned*) rtcSetNewGeometryBuffer(_geometry,
+                                                     RTC_BUFFER_TYPE_INDEX, 0, RTC_FORMAT_UINT4, 4*sizeof(unsigned), 1);
+  ib[0] = 0; ib[1] = 1; ib[2] = 2; ib[3] = 3;
 
   _material = material;
 }

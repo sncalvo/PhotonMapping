@@ -6,8 +6,8 @@
 
 #include "Scene.hpp"
 #include "Material.hpp"
-#include "Intersection.hpp"
 #include "KDTree.hpp"
+#include "Intersection.hpp"
 
   // Created this to indicate with types when we intend to use the values as color or position
 using Color3f = glm::vec3;
