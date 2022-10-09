@@ -101,7 +101,7 @@ Color3f Renderer::_renderDiffuse(Intersection &intersection) {
   for (const auto light : _scene->getLights()) {
     auto directionToLight = glm::normalize(light.position - intersection.position);
 
-    auto shadowRayHit = rtcRayFrom(intersection.position, directionToLight);
+    auto shadowRayHit = rtcRayFrom(intersection.position, directionToLight, glm::distance(light.position, intersection.position));
 
     struct RTCIntersectContext context;
     rtcInitIntersectContext(&context);
