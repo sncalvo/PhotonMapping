@@ -93,7 +93,7 @@ Color3f Renderer::_calculateColor(glm::vec3 origin, glm::vec3 direction, unsigne
   }
 
   delete caustic_neighbors;
-  caustics_average *= 0.01f;
+  caustics_average *= 0.0005f;
 
   _tree->k_nearest_neighbors(point, PHOTONS_PER_SAMPLE, neighbors);
 
@@ -161,9 +161,9 @@ Color3f Renderer::_renderTransparent(Intersection &intersection, unsigned int de
   }
 
   if (in) {
-    nuIt = 1.8 / 1.0;
+    nuIt = intersection.material.refractionIndex / 1.0;
   } else {
-    nuIt = 1.0 / 1.8;
+    nuIt = 1.0 / intersection.material.refractionIndex;
   }
 
   float Ci = cosTita;

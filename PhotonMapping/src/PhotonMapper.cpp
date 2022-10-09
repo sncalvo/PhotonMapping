@@ -91,19 +91,25 @@ void PhotonMapper::makeMap(const Camera& camera) const {
     }
   }
 
-  if (SHOULD_PRINT_DIFFUSE_PHOTON_MAP) {
+  if (SHOULD_PRINT_CAUSTICS_HIT_PHOTON_MAP) {
     for (auto hit : _caustic_hits) {
       Kdtree::KdNodeVector* caustic_neighbors = new std::vector<Kdtree::KdNode>();
 
-      _caustics_tree->k_nearest_neighbors(std::vector { hit.position.x, hit.position.y, hit.position.z },
-                                            1, caustic_neighbors);
+      _caustics_tree->k_nearest_neighbors(
+        std::vector{
+          hit.position.x,
+          hit.position.y,
+          hit.position.z
+        }, 1, caustic_neighbors
+      );
 
-        // if (hit.power.r > 0.9f && hit.power.g > 0.9f && hit.power.b > 0.9f) {
-        //   continue;
-        // }
+  //    if (hit.power.r > 0.9f && hit.power.g > 0.9f && hit.power.b > 0.9f) {
+  //      continue;
+  //    }
 
       Kdtree::KdNode node = caustic_neighbors->at(0);
       auto photon = node.data;
+
       auto cameraPointPosition = camera.getProjectionMatrix() * camera.getViewMatrix() * glm::vec4(photon.position, 1.f);
 
       auto u = image.width - ((cameraPointPosition.x * image.width) / (2.f * cameraPointPosition.w) + image.width / 2.f);
@@ -145,7 +151,7 @@ void PhotonMapper::makeGlobalPhotonMap(PhotonMap map) {
 void PhotonMapper::makeCausticsPhotonMap(PhotonMap map) {
   for (auto light : _scene->getLights()) {
     // We use a lot more photons for caustics, since most get discarded
-    for (unsigned int i = 0; i < PHOTON_LIMIT * 100; i++) {
+    for (unsigned int i = 0; i < PHOTON_LIMIT * 50; i++) {
       // TODO: We know we won't manage disperse scenes, so let's only generate photons with directions to elements in the scene
       auto direction = randomNormalizedVector();
 
@@ -213,9 +219,9 @@ void PhotonMapper::_shootPhoton(const glm::vec3 origin, const glm::vec3 directio
     }
 
     if (in) {
-      nuIt = 1.8 / 1.0;
+      nuIt = intersection.material.refractionIndex / 1.0;
     } else {
-      nuIt = 1.0 / 1.8;
+      nuIt = 1.0 / intersection.material.refractionIndex;
     }
 
     float Ci = cosTita;

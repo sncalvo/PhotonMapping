@@ -28,7 +28,7 @@ public:
   }
 
   std::shared_ptr<Kdtree::KdTree> getCausticsTree() {
-    return _tree;
+    return _caustics_tree;
   }
 
 private:
