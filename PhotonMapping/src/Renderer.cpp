@@ -5,10 +5,6 @@
 #include "EmbreeWrapper.hpp"
 #include "Constants.hpp"
 
-float attenuation(float distance, const Light& light) {
-  return 1.f / (light.constantDecay + light.linearDecay * distance + light.quadraticDecay * glm::pow(distance, 2.f));
-}
-
 void Renderer::setScene(std::shared_ptr<Scene> scene) {
   _scene = scene;
 }
@@ -98,28 +94,9 @@ std::optional<Intersection> Renderer::_castRay(glm::vec3 origin, glm::vec3 direc
 
 Color3f Renderer::_renderDiffuse(Intersection &intersection) {
   Color3f color{ 0.f };
+  
   for (const auto light : _scene->getLights()) {
-    auto directionToLight = glm::normalize(light.position - intersection.position);
-
-    auto shadowRayHit = rtcRayFrom(intersection.position, directionToLight, glm::distance(light.position, intersection.position));
-
-    struct RTCIntersectContext context;
-    rtcInitIntersectContext(&context);
-
-    rtcOccluded1(_scene->scene, &context, &shadowRayHit.ray);
-
-    // For some reason, >= 0 means we reached light. tfar = -inf if object is occluded
-    if (shadowRayHit.ray.tfar != -std::numeric_limits<float>::infinity()) {
-      auto directionModifier = glm::dot(intersection.normal, directionToLight);
-      // TODO: We have UVs, so we could in theory use a texture here
-      // Note that the UVs are for the object coordinates, but could not match coordinates in actual model
-      auto diffuse = intersection.material.color * light.color * std::max(directionModifier, 0.f);
-
-      auto distanceToLight = glm::l2Norm(light.position, intersection.position);
-      auto lightAttenuation = attenuation(distanceToLight, light);
-
-      color += lightAttenuation * light.intensity * diffuse;
-    }
+    color += light->intensityFrom(intersection, _scene->scene);
   }
 
   return color * intersection.material.diffuse;

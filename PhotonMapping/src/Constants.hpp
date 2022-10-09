@@ -8,3 +8,7 @@ constexpr unsigned int PHOTON_LIMIT = 5000;
 
 constexpr auto IMAGE_WIDTH = 480;
 constexpr auto IMAGE_HEIGHT = 480;
+
+constexpr auto SHOULD_PRINT_DIFFUSE_PHOTON_MAP = false;
+constexpr auto SHOULD_PRINT_DEPTH_PHOTON_MAP = false;
+constexpr auto SHOULD_PRINT_HIT_PHOTON_MAP = false;

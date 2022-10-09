@@ -12,11 +12,11 @@ void Scene::addModel(std::shared_ptr<Model> model) {
   _materials.insert(modelMaterialMap.begin(), modelMaterialMap.end());
 }
 
-void Scene::addLight(Light light) {
+void Scene::addLight(std::shared_ptr<Light> light) {
   _lights.push_back(light);
 }
 
-std::vector<Light> Scene::getLights() const {
+std::vector<std::shared_ptr<Light>> Scene::getLights() const {
   return _lights;
 }
 

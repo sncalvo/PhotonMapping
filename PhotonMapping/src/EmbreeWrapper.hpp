@@ -5,9 +5,9 @@
 #include <embree3/rtcore.h>
 #include <glm/glm.hpp>
 
-#include "Intersection.hpp"
 #include "Scene.hpp"
 #include "Utils.hpp"
+#include "Intersection.hpp"
 
 inline std::optional<Intersection> intersectRay(glm::vec3 origin, glm::vec3 direction, std::shared_ptr<Scene> scene) {
   struct RTCIntersectContext context;

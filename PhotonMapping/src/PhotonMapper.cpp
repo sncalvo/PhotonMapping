@@ -43,76 +43,89 @@ void PhotonMapper::makeMap(const Camera& camera) const {
   auto depthImage = Image(IMAGE_WIDTH, IMAGE_HEIGHT);
   auto coloredImage = Image(IMAGE_WIDTH, IMAGE_HEIGHT);
 
-  for (auto hit : _hits) {
-    Kdtree::KdNodeVector* neighbors = new std::vector<Kdtree::KdNode>();
+  if (SHOULD_PRINT_HIT_PHOTON_MAP || SHOULD_PRINT_DEPTH_PHOTON_MAP) {
+    for (auto hit : _hits) {
+      Kdtree::KdNodeVector* neighbors = new std::vector<Kdtree::KdNode>();
 
-    _tree->k_nearest_neighbors(
-      std::vector{
-        hit.position.x,
-        hit.position.y,
-        hit.position.z
-      }, 1, neighbors
-    );
+      _tree->k_nearest_neighbors(
+                                 std::vector{
+                                   hit.position.x,
+                                   hit.position.y,
+                                   hit.position.z
+                                 }, 1, neighbors
+                                 );
 
-//    if (hit.power.r > 0.9f && hit.power.g > 0.9f && hit.power.b > 0.9f) {
-//      continue;
-//    }
+        //    if (hit.power.r > 0.9f && hit.power.g > 0.9f && hit.power.b > 0.9f) {
+        //      continue;
+        //    }
 
-    Kdtree::KdNode node = neighbors->at(0);
-    auto photon = node.data;
+      Kdtree::KdNode node = neighbors->at(0);
+      auto photon = node.data;
 
-    auto cameraPointPosition = camera.getProjectionMatrix() * camera.getViewMatrix() * glm::vec4(photon.position, 1.f);
+      auto cameraPointPosition = camera.getProjectionMatrix() * camera.getViewMatrix() * glm::vec4(photon.position, 1.f);
 
-    auto u = image.width - ((cameraPointPosition.x * image.width) / (2.f * cameraPointPosition.w) + image.width / 2.f);
-    auto v = (cameraPointPosition.y * image.height) / (2.f * cameraPointPosition.w) + image.height / 2.f;
+      auto u = image.width - ((cameraPointPosition.x * image.width) / (2.f * cameraPointPosition.w) + image.width / 2.f);
+      auto v = (cameraPointPosition.y * image.height) / (2.f * cameraPointPosition.w) + image.height / 2.f;
 
-    if (u >= image.width || u < 0 || v >= image.height || v < 0) {
-      continue;
-    }
-
-    image.writePixel((unsigned int)u, (unsigned int)v, photon.power);
-    depthImage.writePixel((unsigned int)u, (unsigned int)v, glm::vec3 { photon.depth * 40.f });
-
-    delete neighbors;
-  }
-
-  for (size_t x = 0; x < coloredImage.width; ++x) {
-    for (size_t y = 0; y < coloredImage.height; ++y) {
-      auto camera = _scene->getCamera();
-      auto direction = camera->pixelRayDirection(x, y, coloredImage.width, coloredImage.height);
-
-      auto result = intersectRay(camera->origin, direction, _scene);
-      if (!result.has_value()) {
-        coloredImage.writePixel(x, y, _scene->ambient);
+      if (u >= image.width || u < 0 || v >= image.height || v < 0) {
         continue;
       }
 
-      auto intersection = result.value();
+      if (SHOULD_PRINT_HIT_PHOTON_MAP)
+        image.writePixel((unsigned int)u, (unsigned int)v, photon.power);
 
-      Kdtree::KdNodeVector* neighbors = new std::vector<Kdtree::KdNode>();
-      std::vector<float> point{ intersection.position.x, intersection.position.y, intersection.position.z };
-      _tree->k_nearest_neighbors(point, PHOTONS_PER_SAMPLE, neighbors);
-
-      glm::vec3 average{ 0.f };
-      for (auto neighbor : *neighbors) {
-        auto weight = 1 + glm::distance(neighbor.data.position, intersection.position);
-        average += neighbor.data.power / weight;
-      }
-
-      average /= neighbors->size();
+      if (SHOULD_PRINT_DEPTH_PHOTON_MAP)
+        depthImage.writePixel((unsigned int)u, (unsigned int)v, glm::vec3 { photon.depth * 40.f });
 
       delete neighbors;
+    }
 
-      coloredImage.writePixel(x, y, average);
+    if (SHOULD_PRINT_HIT_PHOTON_MAP) {
+      image.save("photon-hits.jpeg");
+      std::cout << "Saved photon-hits.jpeg" << std::endl;
+    }
+
+    if (SHOULD_PRINT_DEPTH_PHOTON_MAP) {
+      depthImage.save("photon-hits-depth.jpeg");
+      std::cout << "Saved photon-hits-depth.jpeg" << std::endl;
     }
   }
 
-  image.save("photon-hits.jpeg");
-  std::cout << "Saved photon-hits.jpeg" << std::endl;
-  depthImage.save("photon-hits-depth.jpeg");
-  std::cout << "Saved photon-hits-depth.jpeg" << std::endl;
-  coloredImage.save("photon-colored.jpeg");
-  std::cout << "Saved photon-colored.jpeg" << std::endl;
+  if (SHOULD_PRINT_DIFFUSE_PHOTON_MAP) {
+    for (size_t x = 0; x < coloredImage.width; ++x) {
+      for (size_t y = 0; y < coloredImage.height; ++y) {
+        auto camera = _scene->getCamera();
+        auto direction = camera->pixelRayDirection(x, y, coloredImage.width, coloredImage.height);
+
+        auto result = intersectRay(camera->origin, direction, _scene);
+        if (!result.has_value()) {
+          coloredImage.writePixel(x, y, _scene->ambient);
+          continue;
+        }
+
+        auto intersection = result.value();
+
+        Kdtree::KdNodeVector* neighbors = new std::vector<Kdtree::KdNode>();
+        std::vector<float> point{ intersection.position.x, intersection.position.y, intersection.position.z };
+        _tree->k_nearest_neighbors(point, PHOTONS_PER_SAMPLE, neighbors);
+
+        glm::vec3 average{ 0.f };
+        for (auto neighbor : *neighbors) {
+          auto weight = 1 + glm::distance(neighbor.data.position, intersection.position);
+          average += neighbor.data.power / weight;
+        }
+
+        average /= neighbors->size();
+
+        delete neighbors;
+
+        coloredImage.writePixel(x, y, average);
+      }
+    }
+
+    coloredImage.save("photon-colored.jpeg");
+    std::cout << "Saved photon-colored.jpeg" << std::endl;
+  }
 }
 
 void PhotonMapper::useScene(std::shared_ptr<Scene> scene) {
@@ -125,9 +138,9 @@ void PhotonMapper::makePhotonMap(PhotonMap map) {
       // TODO: We know we won't manage disperse scenes, so let's only generate photons with directions to elements in the scene
       auto direction = randomNormalizedVector();
 
-      auto position = light.position;
+      auto position = light->position;
 
-      _shootPhoton(position, direction, light.color, 0);
+      _shootPhoton(position, direction, light->color, 0);
     }
   }
 
