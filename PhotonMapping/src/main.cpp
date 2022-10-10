@@ -7,7 +7,6 @@
 #include <glm/gtc/constants.hpp>
 
 #include "Constants.hpp"
-#include "Constants.cpp"
 #include "Model.hpp"
 #include "Scene.hpp"
 #include "Camera.hpp"
