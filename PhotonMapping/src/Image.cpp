@@ -30,7 +30,7 @@ void Image::writePixel(unsigned int x, unsigned int y, glm::vec3 color) {
 }
 
 void Image::save(const char *filename) {
-  _performGammaCorrection();
+  _performGammaCorrection(2.2f);
 
   for (unsigned int x = 0; x < width; ++x) {
     for (unsigned int y = 0; y < height; ++y) {
@@ -50,7 +50,7 @@ Image::~Image() {
     //    FreeImage_DeInitialise();
 }
 
-void Image::_performGammaCorrection() {
+void Image::_performGammaCorrection(const float gamma) {
   auto maxNorm = glm::l2Norm(_maxColor);
 
   for (unsigned int colorIndex = 0; colorIndex < width * height; colorIndex++) {
@@ -59,9 +59,9 @@ void Image::_performGammaCorrection() {
     if (currentColor != glm::vec3{0.f}) {
       currentColor /= maxNorm;
 
-      currentColor.x = glm::pow(currentColor.x, 0.33);
-      currentColor.y = glm::pow(currentColor.y, 0.33);
-      currentColor.z = glm::pow(currentColor.z, 0.33);
+      currentColor.x = glm::pow(currentColor.x, 1.f / gamma);
+      currentColor.y = glm::pow(currentColor.y, 1.f / gamma);
+      currentColor.z = glm::pow(currentColor.z, 1.f / gamma);
     }
 
     _pixelBuffer[colorIndex] = Color{ currentColor };

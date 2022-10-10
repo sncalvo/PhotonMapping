@@ -1,7 +1,8 @@
 #pragma once
-
 #include <unordered_map>
 #include <iostream>
+
+constexpr auto PI = 3.14159265359f;
 
 extern std::unordered_map<std::string, bool> BOOL_CONSTANTS;
 extern std::unordered_map<std::string, float> FLOAT_CONSTANTS;

@@ -1,9 +1,22 @@
 #include "Renderer.hpp"
 
+#include <iostream>
 #include <glm/gtx/norm.hpp>
 
 #include "EmbreeWrapper.hpp"
 #include "Constants.hpp"
+
+glm::vec3 randomNormalizedVector3() {
+  while (true) {
+    auto x = glm::linearRand(-1.f, 1.f);
+    auto y = glm::linearRand(-1.f, 1.f);
+    auto z = glm::linearRand(-1.f, 1.f);
+
+    if (x * x + y * y + z * z <= 1) {
+      return glm::normalize(glm::vec3(x,y,z));
+    }
+  }
+}
 
 void Renderer::setScene(std::shared_ptr<Scene> scene) {
   _scene = scene;
@@ -24,7 +37,7 @@ glm::vec3 Renderer::renderPixel(
   uint_fast32_t height,
   Color3f* pmColor
 ) {
-  // TODO: Create multiple pixel samples randomly and combine results
+  // TODO: Multiple samples per pixel
   return _renderPixelSample(x, y, width, height, pmColor);
 }
 
@@ -70,51 +83,50 @@ Color3f Renderer::_calculateColor(glm::vec3 origin, glm::vec3 direction, unsigne
     transparentColor = _renderTransparent(intersection, depth, pmColor, in);
   }
 
-  Kdtree::KdNodeVector* neighbors = new std::vector<Kdtree::KdNode>();
-  Kdtree::KdNodeVector* caustic_neighbors = new std::vector<Kdtree::KdNode>();
   std::vector<float> point{ intersection.position.x, intersection.position.y, intersection.position.z };
-//  _tree->range_nearest_neighbors(
-//    point,
-//    FLOAT_CONSTANTS[MAX_PHOTON_SAMPLING_DISTANCE],
-//    neighbors
-//  );
+  Kdtree::KdNodeVector* caustic_neighbors = new std::vector<Kdtree::KdNode>();
   _caustics_tree->range_nearest_neighbors(point, 0.1, caustic_neighbors);
 
-//  auto predicate = InSameSurfacePredicate(intersection.position, intersection.normal);
-
-  glm::vec3 caustics_average{ 0.f };
+  glm::vec3 caustics{ 0.f };
   for (auto neighbor : *caustic_neighbors) {
-//    if (!predicate(neighbor)) {
-//      continue;
-//    }
-
     auto weight = 1 + glm::distance2(neighbor.data.position, intersection.position);
-    caustics_average += neighbor.data.power / weight;
+    caustics += neighbor.data.power / weight;
   }
 
   delete caustic_neighbors;
-  caustics_average *= 0.0005f;
 
+  auto rayTracing = diffuseColor + specularColor + transparentColor;
+  auto indirectIllumination = _computeRadianceWithPhotonMap(intersection);
+  
+  pmColor[0] += indirectIllumination;
+  pmColor[1] += caustics;
+  return caustics + indirectIllumination + rayTracing;
+}
+
+Color3f Renderer::_computeRadianceWithPhotonMap(Intersection &intersection) {
+  glm::vec3 indirectIllumination { 0.f };
+
+  std::vector<float> point{ intersection.position.x, intersection.position.y, intersection.position.z };
+  Kdtree::KdNodeVector* neighbors = new std::vector<Kdtree::KdNode>();
   _tree->k_nearest_neighbors(point, INT_CONSTANTS[PHOTONS_PER_SAMPLE], neighbors);
+  float maxDistance = 0.f;
 
-//  auto predicate = InSameSurfacePredicate(intersection.position, intersection.normal);
-
-  glm::vec3 average{ 0.f };
   for (auto neighbor : *neighbors) {
-//    if (!predicate(neighbor)) {
-//      continue;
-//    }
+    auto rho = intersection.material.diffuseColor();
+    auto f = rho / PI;
 
-    auto weight = 1 + glm::distance2(neighbor.data.position, intersection.position);
-    average += neighbor.data.power / weight;
+    auto distance = glm::distance2(neighbor.data.position, intersection.position);
+    if (distance > maxDistance) {
+      maxDistance = distance;
+    }
+
+    indirectIllumination += f * neighbor.data.power;
   }
-  average /= 100;
-
+  indirectIllumination /= (PI * maxDistance * maxDistance);
+ 
   delete neighbors;
-
-  pmColor[0] += average;
-  pmColor[1] += caustics_average;
-  return caustics_average + average * 0.2f + (diffuseColor + specularColor + transparentColor) * 0.8f;
+  
+  return indirectIllumination;
 }
 
 std::optional<Intersection> Renderer::_castRay(glm::vec3 origin, glm::vec3 direction) {

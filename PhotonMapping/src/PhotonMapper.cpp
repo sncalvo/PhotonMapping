@@ -136,14 +136,17 @@ void PhotonMapper::useScene(std::shared_ptr<Scene> scene) {
 }
 
 void PhotonMapper::makeGlobalPhotonMap(PhotonMap map) {
-  for (auto light : _scene->getLights()) {
-    for (unsigned int i = 0; i < INT_CONSTANTS[PHOTON_LIMIT]; i++) {
+  auto lights = _scene->getLights();
+  auto photonsPerLight = INT_CONSTANTS[PHOTON_LIMIT] / lights.size();
+  
+  for (auto light : lights) {
+    for (unsigned int i = 0; i < photonsPerLight; i++) {
       // TODO: We know we won't manage disperse scenes, so let's only generate photons with directions to elements in the scene
       auto direction = randomNormalizedVector();
 
       auto position = light->position;
 
-      _shootPhoton(position, direction, light->color, 0, false, false);
+      _shootPhoton(position, direction, light->color * (50.f / (float) photonsPerLight), 0, false, false);
     }
   }
 
@@ -151,15 +154,18 @@ void PhotonMapper::makeGlobalPhotonMap(PhotonMap map) {
 }
 
 void PhotonMapper::makeCausticsPhotonMap(PhotonMap map) {
-  for (auto light : _scene->getLights()) {
+  auto lights = _scene->getLights();
+  auto photonsPerLight = (INT_CONSTANTS[PHOTON_LIMIT] * 10) / lights.size();
+  
+  for (auto light : lights) {
     // We use a lot more photons for caustics, since most get discarded
-    for (unsigned int i = 0; i < INT_CONSTANTS[PHOTON_LIMIT] * 50; i++) {
+    for (unsigned int i = 0; i < photonsPerLight; i++) {
       // TODO: We know we won't manage disperse scenes, so let's only generate photons with directions to elements in the scene
       auto direction = randomNormalizedVector();
 
       auto position = light->position;
 
-      _shootPhoton(position, direction, light->color, 0, true, false);
+      _shootPhoton(position, direction, light->color * (50.f / (float) photonsPerLight), 0, true, false);
     }
   }
 

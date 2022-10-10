@@ -33,5 +33,5 @@ private:
   std::unique_ptr<Color[]> _pixelBuffer;
   glm::vec3 _maxColor{ 0.f };
 
-  void _performGammaCorrection();
+  void _performGammaCorrection(const float gamma);
 };

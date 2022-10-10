@@ -60,6 +60,8 @@ private:
   Color3f _renderDiffuse(Intersection &intersection);
   Color3f _renderSpecular(Intersection &intersection, unsigned int depth, Color3f* pmColor, bool in);
   Color3f _renderTransparent(Intersection &intersection, unsigned int depth, Color3f* pmColor, bool in);
+  
+  Color3f _computeRadianceWithPhotonMap(Intersection &intersection);
 
   std::shared_ptr<Scene> _scene;
   std::shared_ptr<Kdtree::KdTree> _tree;

@@ -1,4 +1,4 @@
-#include "scenebuilder.hpp"
+#include "SceneBuilder.hpp"
 
 #include <iostream>
 

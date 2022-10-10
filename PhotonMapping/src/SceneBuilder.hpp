@@ -1,7 +1,7 @@
 #include <yaml-cpp/yaml.h>
 #include "Scene.hpp"
-#include "camera.hpp"
-#include "model.hpp"
+#include "Camera.hpp"
+#include "Model.hpp"
 
 class SceneBuilder {
 public:

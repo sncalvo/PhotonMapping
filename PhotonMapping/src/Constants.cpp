@@ -1,5 +1,3 @@
-#pragma once
-
 #include "Constants.hpp"
 
 #include <unordered_map>
