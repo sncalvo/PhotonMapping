@@ -43,9 +43,8 @@ public:
 
   RTCScene scene;
   glm::vec3 ambient{0.f};
-  
-  ~Scene();
 
+  ~Scene();
 private:
   std::vector<std::shared_ptr<Model>> _models;
   std::unordered_map<unsigned int, Material> _materials;

@@ -1,14 +1,19 @@
 #pragma once
+#include <unordered_map>
+#include <iostream>
 
-constexpr auto EPSILON = 0.00001f;
-constexpr auto MAX_DEPTH = 5;
-constexpr auto PHOTONS_PER_SAMPLE = 50;
-constexpr auto MAX_PHOTON_SAMPLING_DISTANCE = 0.5f;
-constexpr unsigned int PHOTON_LIMIT = 50000;
+extern std::unordered_map<std::string, bool> BOOL_CONSTANTS;
+extern std::unordered_map<std::string, float> FLOAT_CONSTANTS;
+extern std::unordered_map<std::string, int> INT_CONSTANTS;
+extern std::string WIDTH;
+extern std::string HEIGHT;
 
-constexpr auto IMAGE_WIDTH = 512;
-constexpr auto IMAGE_HEIGHT = 512;
+extern std::string MAX_DEPTH;
+extern std::string PHOTONS_PER_SAMPLE;
+extern std::string PHOTON_LIMIT;
+extern std::string EPSILON;
+extern std::string MAX_PHOTON_SAMPLING_DISTANCE;
 
-constexpr auto SHOULD_PRINT_CAUSTICS_HIT_PHOTON_MAP = true;
-constexpr auto SHOULD_PRINT_DEPTH_PHOTON_MAP = false;
-constexpr auto SHOULD_PRINT_HIT_PHOTON_MAP = false;
+extern std::string SHOULD_PRINT_CAUSTICS_HIT_PHOTON_MAP;
+extern std::string SHOULD_PRINT_DEPTH_PHOTON_MAP;
+extern std::string SHOULD_PRINT_HIT_PHOTON_MAP;

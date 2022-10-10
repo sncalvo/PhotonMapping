@@ -27,7 +27,7 @@ struct InSameSurfacePredicate : Kdtree::KdNodePredicate {
 
     auto directionToPhoton = node.data.position - position;
 
-    return glm::abs(glm::dot(directionToPhoton, normal)) < EPSILON;
+    return glm::abs(glm::dot(directionToPhoton, normal)) < FLOAT_CONSTANTS[EPSILON];
   }
 };
 

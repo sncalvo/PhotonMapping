@@ -39,11 +39,11 @@ glm::vec3 randomNormalizedVector2() {
 }
 
 void PhotonMapper::makeMap(const Camera& camera) const {
-  auto image = Image(IMAGE_WIDTH, IMAGE_HEIGHT);
-  auto causticsImage = Image(IMAGE_WIDTH, IMAGE_HEIGHT);
-  auto depthImage = Image(IMAGE_WIDTH, IMAGE_HEIGHT);
+  auto image = Image(INT_CONSTANTS[WIDTH], INT_CONSTANTS[HEIGHT]);
+  auto causticsImage = Image(INT_CONSTANTS[WIDTH], INT_CONSTANTS[HEIGHT]);
+  auto depthImage = Image(INT_CONSTANTS[WIDTH], INT_CONSTANTS[HEIGHT]);
 
-  if (SHOULD_PRINT_HIT_PHOTON_MAP || SHOULD_PRINT_DEPTH_PHOTON_MAP) {
+  if (BOOL_CONSTANTS[SHOULD_PRINT_HIT_PHOTON_MAP] || BOOL_CONSTANTS[SHOULD_PRINT_DEPTH_PHOTON_MAP]) {
     for (auto hit : _hits) {
       Kdtree::KdNodeVector* neighbors = new std::vector<Kdtree::KdNode>();
 
@@ -71,27 +71,27 @@ void PhotonMapper::makeMap(const Camera& camera) const {
         continue;
       }
 
-      if (SHOULD_PRINT_HIT_PHOTON_MAP)
+      if (BOOL_CONSTANTS[SHOULD_PRINT_HIT_PHOTON_MAP])
         image.writePixel((unsigned int)u, (unsigned int)v, photon.power);
 
-      if (SHOULD_PRINT_DEPTH_PHOTON_MAP)
+      if (BOOL_CONSTANTS[SHOULD_PRINT_DEPTH_PHOTON_MAP])
         depthImage.writePixel((unsigned int)u, (unsigned int)v, glm::vec3 { photon.depth * 40.f });
 
       delete neighbors;
     }
 
-    if (SHOULD_PRINT_HIT_PHOTON_MAP) {
+    if (BOOL_CONSTANTS[SHOULD_PRINT_HIT_PHOTON_MAP]) {
       image.save("photon-hits.jpeg");
       std::cout << "Saved photon-hits.jpeg" << std::endl;
     }
 
-    if (SHOULD_PRINT_DEPTH_PHOTON_MAP) {
+    if (BOOL_CONSTANTS[SHOULD_PRINT_DEPTH_PHOTON_MAP]) {
       depthImage.save("photon-hits-depth.jpeg");
       std::cout << "Saved photon-hits-depth.jpeg" << std::endl;
     }
   }
 
-  if (SHOULD_PRINT_CAUSTICS_HIT_PHOTON_MAP) {
+  if (BOOL_CONSTANTS[SHOULD_PRINT_CAUSTICS_HIT_PHOTON_MAP]) {
     for (auto hit : _caustic_hits) {
       Kdtree::KdNodeVector* caustic_neighbors = new std::vector<Kdtree::KdNode>();
 
@@ -135,7 +135,7 @@ void PhotonMapper::useScene(std::shared_ptr<Scene> scene) {
 
 void PhotonMapper::makeGlobalPhotonMap(PhotonMap map) {
   for (auto light : _scene->getLights()) {
-    for (unsigned int i = 0; i < PHOTON_LIMIT; i++) {
+    for (unsigned int i = 0; i < INT_CONSTANTS[PHOTON_LIMIT]; i++) {
       // TODO: We know we won't manage disperse scenes, so let's only generate photons with directions to elements in the scene
       auto direction = randomNormalizedVector();
 
@@ -151,7 +151,7 @@ void PhotonMapper::makeGlobalPhotonMap(PhotonMap map) {
 void PhotonMapper::makeCausticsPhotonMap(PhotonMap map) {
   for (auto light : _scene->getLights()) {
     // We use a lot more photons for caustics, since most get discarded
-    for (unsigned int i = 0; i < PHOTON_LIMIT * 50; i++) {
+    for (unsigned int i = 0; i < INT_CONSTANTS[PHOTON_LIMIT] * 50; i++) {
       // TODO: We know we won't manage disperse scenes, so let's only generate photons with directions to elements in the scene
       auto direction = randomNormalizedVector();
 
@@ -198,14 +198,14 @@ void PhotonMapper::_shootPhoton(const glm::vec3 origin, const glm::vec3 directio
         reflectionDirection = -reflectionDirection;
       }
 
-      auto reflectionPosition = intersection.position + EPSILON * reflectionDirection;
+      auto reflectionPosition = intersection.position + FLOAT_CONSTANTS[EPSILON] * reflectionDirection;
 
       _shootPhoton(reflectionPosition, reflectionDirection, intersection.material.diffusePower(power), depth + 1, isCausticMode, in);
     }
   } else if (randomSample <= reflectionThreshold) {
     if (!isCausticMode) {
       auto reflectionDirection = glm::reflect(intersection.direction, intersection.normal);
-      auto reflectionPosition = intersection.position + EPSILON * reflectionDirection;
+      auto reflectionPosition = intersection.position + FLOAT_CONSTANTS[EPSILON] * reflectionDirection;
 
       _shootPhoton(reflectionPosition, reflectionDirection, intersection.material.specularPower(power), depth + 1, isCausticMode, in);
     }
@@ -232,7 +232,7 @@ void PhotonMapper::_shootPhoton(const glm::vec3 origin, const glm::vec3 directio
 		}
 		else {
 			glm::vec3 refractionDirection = nuIt * intersection.direction + (Ci * nuIt - sqrtf(discriminant)) * normal;
-      auto refractionPosition = intersection.position + EPSILON * refractionDirection;
+      auto refractionPosition = intersection.position + FLOAT_CONSTANTS[EPSILON] * refractionDirection;
       _shootPhoton(intersection.position, refractionDirection, intersection.material.transparencyPower(power), depth + 1, isCausticMode, !in);
 		}
   } else if (depth != 0) {

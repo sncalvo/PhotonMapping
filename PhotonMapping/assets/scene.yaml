@@ -1,0 +1,104 @@
+constants:
+  WIDTH: 512
+  HEIGHT: 512
+  EPSILON: 0.00001
+  MAX_PHOTON_SAMPLING_DISTANCE: 0.5
+  MAX_DEPTH: 5
+  PHOTONS_PER_SAMPLE: 50
+  PHOTON_LIMIT: 50000
+  SHOULD_PRINT_CAUSTICS_HIT_PHOTON_MAP: true
+  SHOULD_PRINT_DEPTH_PHOTON_MAP: false
+  SHOULD_PRINT_HIT_PHOTON_MAP: false
+
+materials:
+  - &transparent
+    color: [0.8, 0.8, 0.8]
+    diffuse: 0.0
+    reflection: 0.0
+    transparency: 0.9
+    refractionIndex: 1.5
+  - &reflective
+    color: [0.8, 0.8, 0.8]
+    diffuse: 0.0
+    reflection: 0.9
+    transparency: 0.0
+  - &white
+    color: [1.0, 1.0, 1.0]
+    diffuse: 0.9
+    reflection: 0.0
+    transparency: 0.0
+  - &red
+    color: [1.0, 0.0, 0.0]
+    diffuse: 0.9
+    reflection: 0.0
+    transparency: 0.0
+  - &blue
+    color: [0.0, 0.0, 1.0]
+    diffuse: 0.9
+    reflection: 0.0
+    transparency: 0.0
+
+models:
+  - type: "sphere"
+    stuff: [-0.5, -2.0, 7.0, 1.0]
+    material: *transparent 
+  - type: "sphere"
+    stuff: [2.0, -2.0, 7.0, 1.0]
+    material: *reflective
+
+  - type: "fileModel"
+    path: "./assets/plane.obj"
+    material: *white
+  - type: "fileModel"
+    path: "./assets/backwall.obj"
+    material: *white
+  - type: "fileModel"
+    path: "./assets/leftwall.obj"
+    material: *red
+  - type: "fileModel"
+    path: "./assets/rightwall.obj"
+    material: *blue
+  - type: "fileModel"
+    path: "./assets/ceiling.obj"
+    material: *white
+
+lights:
+  - type: "areaLight"
+    position: [0.0, 3.9, 7.0]
+    color: [1.0, 1.0, 1.0]
+    intensity: 1.0
+    constantDecay: 0.2
+    linearDecay: 0.09
+    quadraticDecay: 0.042
+    uvec: [0.5, 0.0, 0.0]
+    vvec: [0.0, 0.0, 0.5]
+    usteps: 3
+    vsteps: 2                          
+  - type: "areaLight"
+    position: [-3.0, 0.0, 6.0]
+    color: [1.0, 1.0, 1.0]
+    intensity: 1.0
+    constantDecay: 0.2
+    linearDecay: 0.09
+    quadraticDecay: 0.042
+    uvec: [0.0, 0.5, 0.0]
+    vvec: [0.0, 0.0, 0.5]
+    usteps: 3
+    vsteps: 2
+    
+    
+    
+    
+    
+    
+    
+    
+    
+      
+      
+      
+      
+      
+      
+      
+      

@@ -38,7 +38,7 @@ glm::vec3 Renderer::_renderPixelSample(
   auto camera = _scene->getCamera();
   auto direction = camera->pixelRayDirection(x, y, width, height);
 
-  return _calculateColor(camera->origin, direction, MAX_DEPTH, pmColor, false);
+  return _calculateColor(camera->origin, direction, INT_CONSTANTS[MAX_DEPTH], pmColor, false);
 }
 
 Color3f Renderer::_calculateColor(glm::vec3 origin, glm::vec3 direction, unsigned int depth, Color3f* pmColor, bool in) {
@@ -75,7 +75,7 @@ Color3f Renderer::_calculateColor(glm::vec3 origin, glm::vec3 direction, unsigne
   std::vector<float> point{ intersection.position.x, intersection.position.y, intersection.position.z };
 //  _tree->range_nearest_neighbors(
 //    point,
-//    MAX_PHOTON_SAMPLING_DISTANCE,
+//    FLOAT_CONSTANTS[MAX_PHOTON_SAMPLING_DISTANCE],
 //    neighbors
 //  );
   _caustics_tree->range_nearest_neighbors(point, 0.1, caustic_neighbors);
@@ -95,7 +95,7 @@ Color3f Renderer::_calculateColor(glm::vec3 origin, glm::vec3 direction, unsigne
   delete caustic_neighbors;
   caustics_average *= 0.0005f;
 
-  _tree->k_nearest_neighbors(point, PHOTONS_PER_SAMPLE, neighbors);
+  _tree->k_nearest_neighbors(point, INT_CONSTANTS[PHOTONS_PER_SAMPLE], neighbors);
 
 //  auto predicate = InSameSurfacePredicate(intersection.position, intersection.normal);
 
@@ -179,7 +179,7 @@ Color3f Renderer::_renderTransparent(Intersection &intersection, unsigned int de
     newIn = !in;
   }
 
-  glm::vec3 refractionPosition = intersection.position + EPSILON * refractionDirection;
+  glm::vec3 refractionPosition = intersection.position + FLOAT_CONSTANTS[EPSILON] * refractionDirection;
 
   Color3f color{ 0.f };
 
@@ -199,7 +199,7 @@ Color3f Renderer::_renderTransparent(Intersection &intersection, unsigned int de
 //
 //    auto refractionDirection = refractionPerpendicular + refractionParallel;
 //    color += _calculateColor(
-//      intersection.position + glm::vec3(EPSILON) * intersection.direction,
+//      intersection.position + glm::vec3(FLOAT_CONSTANTS[EPSILON]) * intersection.direction,
 //      refractionDirection, depth - 1
 //    ) * intersection.material.transparency;
 //  }
