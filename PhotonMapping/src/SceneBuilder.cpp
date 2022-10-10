@@ -82,7 +82,7 @@ namespace YAML {
   };
 }
 
-SceneBuilder::SceneBuilder(RTCDevice device, float aspectRatio) : _device(device), _aspectRatio(aspectRatio) {
+SceneBuilder::SceneBuilder(RTCDevice device) : _device(device) {
 }
 
 void SceneBuilder::_addSphere(YAML::Node node) {
@@ -110,108 +110,85 @@ void SceneBuilder::_loadModels(YAML::Node models) {
 
 }
 
-/* std::vector<std::shared_ptr<Light>> _loadLights(YAML::Node lights)
-{
-    std::vector<std::shared_ptr<Light>> result;
-    for (std::size_t i = 0; i < lights.size(); i++) {
-        result.push_back(std::make_shared<Light>(lights[i].as<Light>()));
-    }
-    return result;
-} */
+void SceneBuilder::_loadLights(YAML::Node lights) {
+  for (std::size_t i = 0; i < lights.size(); i++) {
+    auto light = lights[i];
+    std::shared_ptr<Light> scene_light;
+    if (lights[i]["type"].as<std::string>() == "areaLight") {
+      scene_light = std::make_shared<AreaLight>(
+        lights[i]["position"].as<glm::vec3>(),
+        lights[i]["color"].as<glm::vec3>(),
+        lights[i]["intensity"].as<float>(),
+        lights[i]["constantDecay"].as<float>(),
+        lights[i]["linearDecay"].as<float>(),
+        lights[i]["quadraticDecay"].as<float>(),
+        lights[i]["uvec"].as<glm::vec3>(),
+        lights[i]["vvec"].as<glm::vec3>(),
+        lights[i]["usteps"].as<size_t>(),
+        lights[i]["vsteps"].as<size_t>(),
+        _device
+      );
+    } else if (lights[i]["type"].as<std::string>() == "pointLight") {
 
-/* std::shared_ptr<Camera> SceneBuilder::_loadCamera(YAML::Node camera)
-{
-    camera["aspectRatio"] = this->getAspectRatio();
-    return std::make_shared<Camera>(camera.as<Camera>());
-} */
+    } else {
+      throw("Wrong light type");
+    }
+
+    _scene->addLight(scene_light);
+  }
+}
+
+void SceneBuilder::_loadConstants(YAML::Node constants) {
+  if (!constants[EPSILON] ||
+      !constants[MAX_PHOTON_SAMPLING_DISTANCE] ||
+      !constants[MAX_DEPTH] ||
+      !constants[PHOTONS_PER_SAMPLE] ||
+      !constants[PHOTON_LIMIT] ||
+      !constants[SHOULD_PRINT_CAUSTICS_HIT_PHOTON_MAP] ||
+      !constants[SHOULD_PRINT_DEPTH_PHOTON_MAP] ||
+      !constants[SHOULD_PRINT_HIT_PHOTON_MAP]) {
+      //throw("MISSING CONSTANTS");
+  }
+  std::cout << WIDTH << ": " << constants[WIDTH] << std::endl;
+  std::cout << HEIGHT << ": " << constants[HEIGHT] << std::endl;
+  std::cout << MAX_PHOTON_SAMPLING_DISTANCE << ": " << constants[MAX_PHOTON_SAMPLING_DISTANCE] << std::endl;
+  std::cout << MAX_DEPTH << ": " << constants[MAX_DEPTH] << std::endl;
+  std::cout << PHOTONS_PER_SAMPLE << ": " << constants[PHOTONS_PER_SAMPLE] << std::endl;
+  std::cout << PHOTON_LIMIT << ": " << constants[PHOTON_LIMIT] << std::endl;
+  std::cout << SHOULD_PRINT_CAUSTICS_HIT_PHOTON_MAP << ": " << constants[SHOULD_PRINT_CAUSTICS_HIT_PHOTON_MAP] << std::endl;
+  std::cout << SHOULD_PRINT_DEPTH_PHOTON_MAP << ": " << constants[SHOULD_PRINT_DEPTH_PHOTON_MAP] << std::endl;
+  std::cout << SHOULD_PRINT_HIT_PHOTON_MAP << ": " << constants[SHOULD_PRINT_HIT_PHOTON_MAP] << std::endl;
+
+  INT_CONSTANTS[WIDTH] = constants[WIDTH].as<int>();
+  INT_CONSTANTS[HEIGHT] = constants[HEIGHT].as<int>();
+  INT_CONSTANTS[MAX_DEPTH] = constants[MAX_DEPTH].as<int>();
+  INT_CONSTANTS[PHOTONS_PER_SAMPLE] = constants[PHOTONS_PER_SAMPLE].as<int>();
+  INT_CONSTANTS[PHOTON_LIMIT] = constants[PHOTON_LIMIT].as<int>();
+
+  FLOAT_CONSTANTS[EPSILON] = constants[EPSILON].as<float>();
+  FLOAT_CONSTANTS[MAX_PHOTON_SAMPLING_DISTANCE] = constants[MAX_PHOTON_SAMPLING_DISTANCE].as<float>();
+
+  BOOL_CONSTANTS[SHOULD_PRINT_CAUSTICS_HIT_PHOTON_MAP] = constants[SHOULD_PRINT_CAUSTICS_HIT_PHOTON_MAP].as<bool>();
+  BOOL_CONSTANTS[SHOULD_PRINT_DEPTH_PHOTON_MAP] = constants[SHOULD_PRINT_DEPTH_PHOTON_MAP].as<bool>();
+  BOOL_CONSTANTS[SHOULD_PRINT_HIT_PHOTON_MAP] = constants[SHOULD_PRINT_HIT_PHOTON_MAP].as<bool>();
+}
 
 std::shared_ptr<Scene> SceneBuilder::createScene() {
   _file = YAML::LoadFile("assets/scene.yaml");
 
-  if (!_file["width"] || !_file["height"] || !_file["models"] || !_file["lights"]) {
-      //throw("MISSING STUFF");
+  if (!_file["models"] || !_file["lights"] || !_file["constants"] || !_file["materials"]) {
+      throw("MISSING STUFF");
   }
   _scene = std::make_shared<Scene>(_device);
 
   _loadModels(_file["models"]);
+  _loadLights(_file["lights"]);
+  _loadConstants(_file["constants"]);
 
-  std::shared_ptr<Light> light = std::make_shared<AreaLight>(
-    glm::vec3 {0.0f, 3.9f, 7.f},
-    glm::vec3 {1.f, 1.f, 1.f},
-    1.f,
-    0.2f,
-    0.09f,
-    0.042f,
-    glm::vec3{0.5, 0.f, 0.f},
-    glm::vec3{0.f, 0.f, 0.5f},
-    3,
-    2,
-    _device
-  );
-
-  std::shared_ptr<Light> light2 = std::make_shared<AreaLight>(
-    glm::vec3 {-3.f, 0.f, 6.f},
-    glm::vec3 {1.f, 1.f, 1.f},
-    1.f,
-    0.2f,
-    0.09f,
-    0.042f,
-    glm::vec3{0.0f, 0.5f, 0.f},
-    glm::vec3{0.f, 0.f, 0.5},
-    3,
-    2,
-    _device
-  );
-
-
-  _scene->addLight(light);
-  _scene->addLight(light2);
   _scene->commit();
 
-  auto camera = std::make_shared<Camera>(_aspectRatio, 1.f);
+  auto camera = std::make_shared<Camera>(INT_CONSTANTS[WIDTH] / INT_CONSTANTS[HEIGHT], 1.f);
   _scene->setCamera(camera);
 
-  /*_lights = _loadLights(_file["lights"]);
-    _camera = _loadCamera(_file["camera"]); */
   return _scene;
 }
-
-/* int SceneBuilder::getWidth() const
-{
-    return _file["width"].as<int>();
-}
-
-int SceneBuilder::getHeight() const
-{
-    return _file["height"].as<int>();
-}
-
-int SceneBuilder::getDepth() const
-{
-    return _file["depth"].as<int>();
-}
-
-int SceneBuilder::getSamples() const
-{
-    return _file["samples"].as<int>();
-}
-
-std::vector<std::shared_ptr<Model>> SceneBuilder::getModels() const
-{
-    return _models;
-}
-
-std::vector<std::shared_ptr<Light>> SceneBuilder::getLights() const
-{
-    return _lights;
-}
-
-float SceneBuilder::getAspectRatio() const
-{
-    return (float) this->getWidth() / (float) this->getHeight();
-}
-
-std::shared_ptr<Camera> SceneBuilder::getCamera() const
-{
-    return _camera;
-} */

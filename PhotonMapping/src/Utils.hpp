@@ -18,7 +18,7 @@ inline auto rtcRayFrom(glm::vec3 origin, glm::vec3 direction, float tfar) {
   shadowRayHit.ray.dir_y = direction.y;
   shadowRayHit.ray.dir_z = direction.z;
 
-  shadowRayHit.ray.tnear = EPSILON;
+  shadowRayHit.ray.tnear = FLOAT_CONSTANTS[EPSILON];
   shadowRayHit.ray.tfar = tfar;
 
   shadowRayHit.ray.mask = -1;
@@ -41,7 +41,7 @@ inline auto rtcRayFrom(glm::vec3 origin, glm::vec3 direction) {
   shadowRayHit.ray.dir_y = direction.y;
   shadowRayHit.ray.dir_z = direction.z;
 
-  shadowRayHit.ray.tnear = EPSILON;
+  shadowRayHit.ray.tnear = FLOAT_CONSTANTS[EPSILON];
   shadowRayHit.ray.tfar = std::numeric_limits<float>::infinity();
 
   shadowRayHit.ray.mask = -1;
@@ -64,7 +64,7 @@ inline auto rtcRayFrom(Vector vector) {
   shadowRayHit.ray.dir_y = vector.dy;
   shadowRayHit.ray.dir_z = vector.dz;
 
-  shadowRayHit.ray.tnear = EPSILON;
+  shadowRayHit.ray.tnear = FLOAT_CONSTANTS[EPSILON];
   shadowRayHit.ray.tfar = std::numeric_limits<float>::infinity();
 
   shadowRayHit.ray.mask = -1;

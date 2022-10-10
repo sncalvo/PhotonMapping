@@ -5,7 +5,7 @@
 
 class SceneBuilder {
 public:
-  SceneBuilder(RTCDevice device, float aspectRatio);
+  SceneBuilder(RTCDevice device);
   std::shared_ptr<Scene> createScene();
 private:
   RTCDevice _device;
@@ -15,6 +15,8 @@ private:
   std::shared_ptr<Scene> _scene;
 
   void _loadModels(YAML::Node models);
+  void _loadLights(YAML::Node lights);
+  void _loadConstants(YAML::Node constants);
   void _addSphere(YAML::Node node);
   void _addFileModel(YAML::Node node);
 };

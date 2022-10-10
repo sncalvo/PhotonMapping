@@ -6,6 +6,8 @@
 #include <glm/gtx/norm.hpp>
 #include <glm/gtc/constants.hpp>
 
+#include "Constants.hpp"
+#include "Constants.cpp"
 #include "Model.hpp"
 #include "Scene.hpp"
 #include "Camera.hpp"
@@ -40,14 +42,14 @@ int main()
   std::srand(time(0));
   RTCDevice device = initializeDevice();
 
-  auto image = new Image(IMAGE_WIDTH, IMAGE_HEIGHT);
-  auto globalPMImage = new Image(IMAGE_WIDTH, IMAGE_HEIGHT);
-  auto causticsImage = new Image(IMAGE_WIDTH, IMAGE_HEIGHT);
+  SceneBuilder sceneBuilder = SceneBuilder(device);
+  std::shared_ptr<Scene> scene = sceneBuilder.createScene();
+
+  auto image = new Image(INT_CONSTANTS[WIDTH], INT_CONSTANTS[HEIGHT]);
+  auto globalPMImage = new Image(INT_CONSTANTS[WIDTH], INT_CONSTANTS[HEIGHT]);
+  auto causticsImage = new Image(INT_CONSTANTS[WIDTH], INT_CONSTANTS[HEIGHT]);
   const auto aspectRatio = (float)image->width / (float)image->height;
   auto camera = std::make_shared<Camera>(aspectRatio, 1.f);
-
-  SceneBuilder sceneBuilder = SceneBuilder(device, aspectRatio);
-  std::shared_ptr<Scene> scene = sceneBuilder.createScene();
 
   Renderer renderer;
 
