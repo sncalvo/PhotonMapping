@@ -103,6 +103,9 @@ public:
                            KdNodeVector* result, KdNodePredicate* pred = NULL);
   void range_nearest_neighbors(const CoordPoint& point, float r,
                                KdNodeVector* result);
+
+  void save(const std::string& filename);
+  static KdTree* load(const std::string& filename);
 };
 
 }  // end namespace Kdtree

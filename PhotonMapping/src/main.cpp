@@ -19,6 +19,10 @@
 #include "Utils.hpp"
 
 constexpr unsigned int numberOfPhotons = 10000;
+constexpr auto loadTree = true;
+
+constexpr auto photonsTreeFilename = "photonsTree";
+constexpr auto causticsTreeFilename = "causticsTree";
 
 void errorFunction(void* userPtr, enum RTCError error, const char* str)
 {
@@ -59,8 +63,15 @@ int main()
 
   photonMapper.useScene(scene);
 
-  photonMapper.makeGlobalPhotonMap(PhotonMap::Global);
-  photonMapper.makeCausticsPhotonMap(PhotonMap::Global);
+  if (loadTree) {
+    photonMapper.initializeTreeFromFile(photonsTreeFilename, causticsTreeFilename);
+  } else {
+    photonMapper.makeGlobalPhotonMap(PhotonMap::Global);
+    photonMapper.makeCausticsPhotonMap(PhotonMap::Global);
+
+    photonMapper.saveTreeToFile(photonsTreeFilename, causticsTreeFilename);
+  }
+
   photonMapper.makeMap(*scene->getCamera());
 
   renderer.setTree(photonMapper.getTree());

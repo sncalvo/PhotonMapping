@@ -13,6 +13,8 @@
 #include <limits>
 #include <stdexcept>
 
+#include <fstream>
+
 namespace Kdtree {
 
   //--------------------------------------------------------------
@@ -320,7 +322,7 @@ void KdTree::range_nearest_neighbors(const CoordPoint& point, float r,
 
   result->clear();
   if (point.size() != dimension)
-    throw std::invalid_argument(    
+    throw std::invalid_argument(
                                 "kdtree::k_nearest_neighbors(): point must be of same dimension as "
                                 "kdtree");
   if (this->distance_type == 2) {
@@ -432,6 +434,69 @@ bool KdTree::ball_within_bounds(const CoordPoint& point, float dist,
         distance->coordinate_distance(point[i], node->upbound[i], i) <= dist)
       return false;
   return true;
+}
+
+void KdTree::save(const std::string& filename) {
+  std::string objectFilename = filename + ".fspnodes";
+  std::string objectSizeFilename = filename + ".fspsize";
+  std::ofstream file(objectFilename);
+  std::ofstream sizeFile(objectSizeFilename);
+
+  if (!file.is_open()) {
+    throw std::invalid_argument("kdtree::save(): could not open object file");
+  }
+  if (!sizeFile.is_open()) {
+    throw std::invalid_argument("kdtree::save(): could not open size file");
+  }
+
+  file.clear();
+  sizeFile.clear();
+
+  size_t size = allnodes.size();
+
+  sizeFile.write((char*)&size, sizeof(size_t));
+
+  for (size_t i = 0; i < size; i++) {
+    file.write((char*)&allnodes[i], sizeof(KdNode));
+  }
+
+  file.close();
+  sizeFile.close();
+}
+
+KdTree* KdTree::load(const std::string& filename) {
+  std::string objectFilename = filename + ".fspnodes";
+  std::string objectSizeFilename = filename + ".fspsize";
+
+  std::ifstream file(objectFilename);
+  std::ifstream fileSize(objectSizeFilename);
+
+  if (!file.is_open()) {
+    throw std::invalid_argument("kdtree::load(): could not open file");
+  }
+  if (!fileSize.is_open()) {
+    throw std::invalid_argument("kdtree::load(): could not open size file");
+  }
+
+  size_t size;
+  fileSize.read((char*)&size, sizeof(size_t));
+
+  KdNodeVector* allnodes = new std::vector<KdNode>(size);
+
+  for (size_t i = 0; i < size; i++) {
+    file.read((char*)&(*allnodes)[i], sizeof(KdNode));
+    // For some reason the point is not set up correctly
+    (*allnodes)[i].point[0] = (*allnodes)[i].data.position.x;
+    (*allnodes)[i].point[1] = (*allnodes)[i].data.position.y;
+    (*allnodes)[i].point[2] = (*allnodes)[i].data.position.z;
+  }
+
+  KdTree* tree = new KdTree(allnodes);
+
+  file.close();
+  fileSize.close();
+
+  return tree;
 }
 
 }  // namespace Kdtree

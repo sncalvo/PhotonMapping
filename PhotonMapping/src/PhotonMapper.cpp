@@ -6,6 +6,8 @@
 #include "Constants.hpp"
 #include "Image.hpp"
 
+#include <fstream>
+
 PhotonMapper::PhotonMapper() {
 
 }
@@ -162,6 +164,29 @@ void PhotonMapper::makeCausticsPhotonMap(PhotonMap map) {
   }
 
   _caustics_tree = std::make_shared<Kdtree::KdTree>(&_caustic_nodes);
+}
+
+void PhotonMapper::initializeTreeFromFile(std::string photonsTreeFilename, std::string causticsTreeFilename) {
+  std::cout << "Loading photon map from file " << photonsTreeFilename << std::endl;
+  std::cout << "Loading caustics photon map from file " << causticsTreeFilename << std::endl;
+
+  std::shared_ptr<Kdtree::KdTree> tree(Kdtree::KdTree::load(photonsTreeFilename));
+  std::shared_ptr<Kdtree::KdTree> causticsTree(Kdtree::KdTree::load(causticsTreeFilename));
+
+  std::cout << "Loaded photon map from file " << photonsTreeFilename << std::endl;
+  std::cout << "Loaded caustics photon map from file " << causticsTreeFilename << std::endl;
+
+  _tree = tree;
+  _caustics_tree = causticsTree;
+}
+
+void PhotonMapper::saveTreeToFile(std::string photonsTreeFilename, std::string causticsTreeFilename) const {
+  std::cout << "Saving photon map to file " << photonsTreeFilename << std::endl;
+  std::cout << "Saving caustics photon map to file " << causticsTreeFilename << std::endl;
+  _tree->save(photonsTreeFilename);
+  _caustics_tree->save(causticsTreeFilename);
+  std::cout << "Saved photon map from file " << photonsTreeFilename << std::endl;
+  std::cout << "Saved caustics photon map from file " << causticsTreeFilename << std::endl;
 }
 
 void PhotonMapper::_shootPhoton(const glm::vec3 origin, const glm::vec3 direction,

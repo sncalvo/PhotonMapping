@@ -31,6 +31,9 @@ public:
     return _caustics_tree;
   }
 
+  void initializeTreeFromFile(std::string photonsTree, std::string causticsTree);
+
+  void saveTreeToFile(std::string photonsTreeFilename, std::string causticsTreeFilename) const;
 private:
   std::shared_ptr<Kdtree::KdTree> _tree;
   std::shared_ptr<Kdtree::KdTree> _caustics_tree;
