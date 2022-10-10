@@ -8,34 +8,121 @@
 
 #include "Intersection.hpp"
 #include "Model.hpp"
+#include "Constants.hpp"
 
-glm::vec3 Light::_intensityFromPoint(glm::vec3 position, Intersection& intersection, RTCScene scene) const {
+std::pair<std::vector<Intersection>, bool> getListOfIntersections(std::shared_ptr<Scene> scene, glm::vec3 origin, glm::vec3 direction, float distance) {
+  std::vector<Intersection> result;
+  float accumulatedDistance = 0.f;
+  size_t iterationCount = -1;
+
+  struct RTCIntersectContext context;
+  rtcInitIntersectContext(&context);
+  auto shadowRayHit2 = rtcRayFrom(origin, direction, distance);
+  rtcOccluded1(scene->scene, &context, &shadowRayHit2.ray);
+
+  do {
+    iterationCount += 1;
+    struct RTCIntersectContext context;
+    rtcInitIntersectContext(&context);
+
+    auto shadowRayHit = rtcRayFrom(origin, direction);
+
+    rtcIntersect1(scene->scene, &context, &shadowRayHit);
+
+    // We did not find any lights. Returning false for light hits
+    if (shadowRayHit.hit.geomID == RTC_INVALID_GEOMETRY_ID) {
+      accumulatedDistance += shadowRayHit.ray.tfar;
+
+      return std::pair{result, false};
+    }
+
+    auto intersection = Intersection{
+      shadowRayHit.hit.geomID,
+      scene->getMaterial(shadowRayHit.hit.geomID),
+      { shadowRayHit.hit.Ng_x, shadowRayHit.hit.Ng_y, shadowRayHit.hit.Ng_z },
+      {
+        shadowRayHit.ray.org_x + shadowRayHit.ray.dir_x * shadowRayHit.ray.tfar,
+        shadowRayHit.ray.org_y + shadowRayHit.ray.dir_y * shadowRayHit.ray.tfar,
+        shadowRayHit.ray.org_z + shadowRayHit.ray.dir_z * shadowRayHit.ray.tfar
+      },
+      {
+        shadowRayHit.ray.dir_x,
+        shadowRayHit.ray.dir_y,
+        shadowRayHit.ray.dir_z
+      },
+      shadowRayHit.ray.tfar,
+      {
+        shadowRayHit.hit.u,
+        shadowRayHit.hit.v,
+      }
+    };
+
+    result.push_back(intersection);
+
+    accumulatedDistance += shadowRayHit.ray.tfar;
+    origin = intersection.position + direction * EPSILON;
+
+    // Early returning since object is totally occluded
+    if (intersection.material.transparency == 0.f && accumulatedDistance < distance - EPSILON) {
+      if (shadowRayHit2.ray.tfar != -std::numeric_limits<float>::infinity()) {
+        std::cout << "WTF" << std::endl;
+      }
+      return std::pair{result, false};
+    }
+  } while (accumulatedDistance < distance - EPSILON);
+
+  return std::pair{result, true};
+}
+
+glm::vec3 Light::_intensityFromPoint(glm::vec3 position, Intersection& intersection, std::shared_ptr<Scene> scene) const {
   glm::vec3 result{ 0.f };
   auto directionToLight = glm::normalize(position - intersection.position);
+  auto distanceToLight = glm::distance(position, intersection.position);
 
-  auto shadowRayHit = rtcRayFrom(intersection.position, directionToLight, glm::distance(position, intersection.position));
+  auto shadowRayHit = rtcRayFrom(intersection.position, directionToLight, distanceToLight);
 
   struct RTCIntersectContext context;
   rtcInitIntersectContext(&context);
 
   // TODO: Change to intersects with all solids until light and check transparency between them
-  rtcOccluded1(scene, &context, &shadowRayHit.ray);
+  rtcOccluded1(scene->scene, &context, &shadowRayHit.ray);
+  auto lightPathIntersections = getListOfIntersections(scene, intersection.position, directionToLight, distanceToLight);
+//
+  auto intersections = lightPathIntersections.first;
+  auto didReachLight = lightPathIntersections.second;
+//
+  // Early return since we did not even reach light unoccluded
+  if (!didReachLight) {
+    return result;
+  }
+//
+  auto s = glm::vec3(1.f);
+  // Checking all transclucent objects in path until reaching light
+  for (auto intersection : intersections) {
+    s *= intersection.material.transparencyColor();
 
-  // For some reason, >= 0 means we reached light. tfar = -inf if object is occluded
-  if (shadowRayHit.ray.tfar != -std::numeric_limits<float>::infinity()) {
-    auto directionModifier = glm::dot(intersection.normal, directionToLight);
-    auto diffuse = intersection.material.color * color * std::max(directionModifier, 0.f);
-
-    auto distanceToLight = glm::l2Norm(position, intersection.position);
-    auto lightAttenuation = _attenuation(distanceToLight);
-
-    result += lightAttenuation * _intensity * diffuse;
+    if (glm::l2Norm(s) <= glm::epsilon<float>()) {
+      break;
+    }
   }
 
-  return result;
+  // For some reason, >= 0 means we reached light. tfar = -inf if object is occluded
+//  if (shadowRayHit.ray.tfar != -std::numeric_limits<float>::infinity()) {
+//    auto directionModifier = glm::dot(intersection.normal, directionToLight);
+//    auto diffuse = intersection.material.color * color * std::max(directionModifier, 0.f);
+//
+//    auto lightAttenuation = _attenuation(distanceToLight);
+//
+//    result += lightAttenuation * _intensity * diffuse;
+//  }
+  auto directionModifier = glm::dot(intersection.normal, directionToLight);
+  auto lightAttenuation = _attenuation(distanceToLight);
+
+  return s * lightAttenuation * _intensity * std::max(directionModifier, 0.f);
+//  return result;
 }
 
-glm::vec3 PointLight::intensityFrom(Intersection& intersection, RTCScene scene) const {
+glm::vec3 PointLight::intensityFrom(Intersection& intersection, std::shared_ptr<Scene> scene) const {
   return _intensityFromPoint(position, intersection, scene);
 }
 
@@ -65,7 +152,7 @@ AreaLight::AreaLight(
     }, device, _corner, uvec, vvec);
 }
 
-glm::vec3 AreaLight::intensityFrom(Intersection& intersection, RTCScene scene) const {
+glm::vec3 AreaLight::intensityFrom(Intersection& intersection, std::shared_ptr<Scene> scene) const {
   glm::vec3 color{ 0.f };
 
   auto lightPoints = _lightSourcePoints();

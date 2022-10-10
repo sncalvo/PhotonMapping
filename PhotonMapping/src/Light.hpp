@@ -8,12 +8,12 @@
 #include <embree3/rtcore.h>
 
 class Model;
-
+class Scene;
 struct Intersection;
 
 class Light {
 public:
-  virtual glm::vec3 intensityFrom(Intersection& intersection, RTCScene scene) const = 0;
+  virtual glm::vec3 intensityFrom(Intersection& intersection, std::shared_ptr<Scene> scene) const = 0;
   virtual std::shared_ptr<Model> getModel() const = 0;
 
   glm::vec3 position, color;
@@ -29,7 +29,7 @@ protected:
     return 1.f / (_constantDecay + _linearDecay * distance + _quadraticDecay * glm::pow(distance, 2.f));
   }
 
-  glm::vec3 _intensityFromPoint(glm::vec3 position, Intersection& intersection, RTCScene scene) const;
+  glm::vec3 _intensityFromPoint(glm::vec3 position, Intersection& intersection, std::shared_ptr<Scene> scene) const;
 };
 
 class PointLight : public Light {
@@ -37,7 +37,7 @@ public:
   PointLight(glm::vec3 position, glm::vec3 color, float intensity, float constantDecay, float linearDecay, float quadraticDecay) :
     Light(position, color, intensity, constantDecay, linearDecay, quadraticDecay) {}
 
-  glm::vec3 intensityFrom(Intersection& intersection, RTCScene scene) const;
+  glm::vec3 intensityFrom(Intersection& intersection, std::shared_ptr<Scene> scene) const;
 
   std::shared_ptr<Model> getModel() const;
 };
@@ -49,7 +49,7 @@ public:
     float quadraticDecay, glm::vec3 uvec, glm::vec3 vvec, size_t usteps, size_t vsteps, RTCDevice device
   );
 
-  glm::vec3 intensityFrom(Intersection& intersection, RTCScene scene) const;
+  glm::vec3 intensityFrom(Intersection& intersection, std::shared_ptr<Scene> scene) const;
 
   std::shared_ptr<Model> getModel() const;
 

@@ -22,6 +22,7 @@ inline std::optional<Intersection> intersectRay(glm::vec3 origin, glm::vec3 dire
   }
 
   auto intersection = Intersection{
+    rayHit.hit.geomID,
     scene->getMaterial(rayHit.hit.geomID),
     { rayHit.hit.Ng_x, rayHit.hit.Ng_y, rayHit.hit.Ng_z },
     {

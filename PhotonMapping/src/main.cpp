@@ -42,8 +42,22 @@ int main()
   std::srand(time(0));
   RTCDevice device = initializeDevice();
 
+<<<<<<< Updated upstream
   SceneBuilder sceneBuilder = SceneBuilder(device);
   std::shared_ptr<Scene> scene = sceneBuilder.createScene();
+=======
+  auto floor = std::make_shared<Model>("./assets/plane.obj", Material { glm::vec3 { 1.f, 1.f, 1.f }, 0.9f, 0.f, 0.f,  }, device);
+  // auto sphere = std::make_shared<Model>(RTC_GEOMETRY_TYPE_SPHERE_POINT, Material { glm::vec3 { 0.8f, 0.8f, 0.8f }, 0.0f, 0.0f, 0.9f, 1.5f }, device, glm::vec4 { -0.5f, -2.0f, 7.0f, 1.0f });
+  // auto sphere2 = std::make_shared<Model>(RTC_GEOMETRY_TYPE_SPHERE_POINT, Material { glm::vec3 { 0.8f, 0.8f, 0.8f }, 0.0f, 0.9f, 0.f, }, device, glm::vec4 { 2.0f, -2.0f, 7.0f, 1.0f });
+/*   auto ball1 = std::make_shared<Model>(RTC_GEOMETRY_TYPE_SPHERE_POINT, Material { glm::vec3 { 1.f, 0.f, 1.f }, 0.2f, 0.1f, 0.6f,  }, device, glm::vec4 { -1.0f, -1.0f, 8.0f, 2.0f }); */
+/*   auto ball2 = std::make_shared<Model>(RTC_GEOMETRY_TYPE_SPHERE_POINT, Material { glm::vec3 { 1.f, 0.f, 0.f }, 0.2f, 7.f, 0.f,  }, device, glm::vec4 { 1.0f, -2.f, 9.0f, 1.0f }); */
+  auto sphere = std::make_shared<Model>(RTC_GEOMETRY_TYPE_SPHERE_POINT, Material { glm::vec3 { 0.2f, 0.2f, 0.8f }, 0.1f, 0.1f, 0.8f,  }, device, glm::vec4 { -0.5f, -2.0f, 7.0f, 1.0f });
+  auto sphere2 = std::make_shared<Model>(RTC_GEOMETRY_TYPE_SPHERE_POINT, Material { glm::vec3 { 0.8f, 0.2f, 0.2f }, 0.0f, 1.0f, 0.f,  }, device, glm::vec4 { 2.0f, -2.0f, 7.0f, 1.0f });
+  auto backWall = std::make_shared<Model>("./assets/backwall.obj", Material { glm::vec3 { 1.f, 1.f, 1.f }, 0.9f, 0.f, 0.f,  }, device);
+  auto leftWall = std::make_shared<Model>("./assets/leftwall.obj", Material { glm::vec3 { 1.f, 0.f, 0.f }, 0.9f, 0.f, 0.f,  }, device);
+  auto rightWall = std::make_shared<Model>("./assets/rightwall.obj", Material { glm::vec3 { 0.f, 0.f, 1.f }, 0.9f, 0.f, 0.f,  }, device);
+  auto ceiling = std::make_shared<Model>("./assets/ceiling.obj", Material { glm::vec3 { 1.f, 1.f, 1.f }, 0.9f, 0.f, 0.f,  }, device);
+>>>>>>> Stashed changes
 
   auto image = new Image(INT_CONSTANTS[WIDTH], INT_CONSTANTS[HEIGHT]);
   auto globalPMImage = new Image(INT_CONSTANTS[WIDTH], INT_CONSTANTS[HEIGHT]);

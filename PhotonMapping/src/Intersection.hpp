@@ -6,6 +6,7 @@
 #include "Material.hpp"
 
 struct Intersection {
+  unsigned int geomID;
   Material material;
   glm::vec3 normal;
   glm::vec3 position;
@@ -14,6 +15,7 @@ struct Intersection {
   glm::vec2 uv;
 
   Intersection(
+    unsigned int geomID,
     Material material,
     glm::vec3 normal,
     glm::vec3 position,

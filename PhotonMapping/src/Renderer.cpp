@@ -70,6 +70,8 @@ Color3f Renderer::_calculateColor(glm::vec3 origin, glm::vec3 direction, unsigne
     transparentColor = _renderTransparent(intersection, depth, pmColor, in);
   }
 
+  return (diffuseColor + specularColor + transparentColor);
+
   Kdtree::KdNodeVector* neighbors = new std::vector<Kdtree::KdNode>();
   Kdtree::KdNodeVector* caustic_neighbors = new std::vector<Kdtree::KdNode>();
   std::vector<float> point{ intersection.position.x, intersection.position.y, intersection.position.z };
@@ -114,6 +116,7 @@ Color3f Renderer::_calculateColor(glm::vec3 origin, glm::vec3 direction, unsigne
 
   pmColor[0] += average;
   pmColor[1] += caustics_average;
+
   return caustics_average + average * 0.2f + (diffuseColor + specularColor + transparentColor) * 0.8f;
 }
 
@@ -123,9 +126,9 @@ std::optional<Intersection> Renderer::_castRay(glm::vec3 origin, glm::vec3 direc
 
 Color3f Renderer::_renderDiffuse(Intersection &intersection) {
   Color3f color{ 0.f };
-  
+
   for (const auto light : _scene->getLights()) {
-    color += light->intensityFrom(intersection, _scene->scene);
+    color += light->intensityFrom(intersection, _scene);
   }
 
   return color * intersection.material.diffuse;
@@ -169,7 +172,7 @@ Color3f Renderer::_renderTransparent(Intersection &intersection, unsigned int de
   float Ci = cosTita;
   float SiSqrd = 1 - pow(Ci, 2);
   float discriminant = 1 - pow(nuIt, 2) * SiSqrd;
-  glm::vec3 refractionDirection; 
+  glm::vec3 refractionDirection;
   bool newIn = in;
   if (discriminant < 0) {
     refractionDirection = glm::normalize(glm::reflect(intersection.direction, intersection.normal));
