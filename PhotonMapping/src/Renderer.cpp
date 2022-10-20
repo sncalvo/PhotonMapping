@@ -122,7 +122,7 @@ Color3f Renderer::_computeRadianceWithPhotonMap(Intersection &intersection) {
 
     indirectIllumination += f * neighbor.data.power;
   }
-  indirectIllumination /= (PI * maxDistance * maxDistance);
+  indirectIllumination /= (PI * maxDistance);
  
   delete neighbors;
   

@@ -1,6 +1,7 @@
 #include "./Image.hpp"
 
 #include <glm/gtx/norm.hpp>
+#include "Constants.hpp"
 
 constexpr unsigned int PIXEL_SIZE = 24;
 
@@ -30,7 +31,7 @@ void Image::writePixel(unsigned int x, unsigned int y, glm::vec3 color) {
 }
 
 void Image::save(const char *filename) {
-  _performGammaCorrection(2.2f);
+  _performGammaCorrection();
 
   for (unsigned int x = 0; x < width; ++x) {
     for (unsigned int y = 0; y < height; ++y) {
@@ -50,7 +51,8 @@ Image::~Image() {
     //    FreeImage_DeInitialise();
 }
 
-void Image::_performGammaCorrection(const float gamma) {
+void Image::_performGammaCorrection() {
+  auto gamma = FLOAT_CONSTANTS[GAMMA_CORRECTION]
   auto maxNorm = glm::l2Norm(_maxColor);
 
   for (unsigned int colorIndex = 0; colorIndex < width * height; colorIndex++) {

@@ -9,6 +9,7 @@ constants:
   SHOULD_PRINT_CAUSTICS_HIT_PHOTON_MAP: true
   SHOULD_PRINT_DEPTH_PHOTON_MAP: false
   SHOULD_PRINT_HIT_PHOTON_MAP: false
+  GAMMA_CORRECTION: 2.2
 
 materials:
   - &transparent
