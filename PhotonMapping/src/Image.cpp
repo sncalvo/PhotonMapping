@@ -1,6 +1,7 @@
 #include "./Image.hpp"
 
 #include <glm/gtx/norm.hpp>
+#include "Constants.hpp"
 
 constexpr unsigned int PIXEL_SIZE = 24;
 
@@ -51,6 +52,7 @@ Image::~Image() {
 }
 
 void Image::_performGammaCorrection() {
+  auto gamma = FLOAT_CONSTANTS[GAMMA_CORRECTION]
   auto maxNorm = glm::l2Norm(_maxColor);
 
   for (unsigned int colorIndex = 0; colorIndex < width * height; colorIndex++) {
@@ -59,9 +61,9 @@ void Image::_performGammaCorrection() {
     if (currentColor != glm::vec3{0.f}) {
       currentColor /= maxNorm;
 
-      currentColor.x = glm::pow(currentColor.x, 0.33);
-      currentColor.y = glm::pow(currentColor.y, 0.33);
-      currentColor.z = glm::pow(currentColor.z, 0.33);
+      currentColor.x = glm::pow(currentColor.x, 1.f / gamma);
+      currentColor.y = glm::pow(currentColor.y, 1.f / gamma);
+      currentColor.z = glm::pow(currentColor.z, 1.f / gamma);
     }
 
     _pixelBuffer[colorIndex] = Color{ currentColor };

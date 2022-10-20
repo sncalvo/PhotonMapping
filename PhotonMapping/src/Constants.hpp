@@ -1,7 +1,8 @@
 #pragma once
-
 #include <unordered_map>
 #include <iostream>
+
+constexpr auto PI = 3.14159265359f;
 
 extern std::unordered_map<std::string, bool> BOOL_CONSTANTS;
 extern std::unordered_map<std::string, float> FLOAT_CONSTANTS;
@@ -18,3 +19,4 @@ extern std::string MAX_PHOTON_SAMPLING_DISTANCE;
 extern std::string SHOULD_PRINT_CAUSTICS_HIT_PHOTON_MAP;
 extern std::string SHOULD_PRINT_DEPTH_PHOTON_MAP;
 extern std::string SHOULD_PRINT_HIT_PHOTON_MAP;
+extern std::string GAMMA_CORRECTION;
