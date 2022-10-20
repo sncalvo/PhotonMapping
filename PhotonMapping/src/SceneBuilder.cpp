@@ -146,7 +146,8 @@ void SceneBuilder::_loadConstants(YAML::Node constants) {
       !constants[PHOTON_LIMIT] ||
       !constants[SHOULD_PRINT_CAUSTICS_HIT_PHOTON_MAP] ||
       !constants[SHOULD_PRINT_DEPTH_PHOTON_MAP] ||
-      !constants[SHOULD_PRINT_HIT_PHOTON_MAP]) {
+      !constants[SHOULD_PRINT_HIT_PHOTON_MAP] ||
+      !constants[GAMMA_CORRECTION]) {
       //throw("MISSING CONSTANTS");
   }
   std::cout << WIDTH << ": " << constants[WIDTH] << std::endl;
@@ -167,6 +168,7 @@ void SceneBuilder::_loadConstants(YAML::Node constants) {
 
   FLOAT_CONSTANTS[EPSILON] = constants[EPSILON].as<float>();
   FLOAT_CONSTANTS[MAX_PHOTON_SAMPLING_DISTANCE] = constants[MAX_PHOTON_SAMPLING_DISTANCE].as<float>();
+  FLOAT_CONSTANTS[GAMMA_CORRECTION] = constants[GAMMA_CORRECTION].as<float>();
 
   BOOL_CONSTANTS[SHOULD_PRINT_CAUSTICS_HIT_PHOTON_MAP] = constants[SHOULD_PRINT_CAUSTICS_HIT_PHOTON_MAP].as<bool>();
   BOOL_CONSTANTS[SHOULD_PRINT_DEPTH_PHOTON_MAP] = constants[SHOULD_PRINT_DEPTH_PHOTON_MAP].as<bool>();

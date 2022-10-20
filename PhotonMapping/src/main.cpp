@@ -19,7 +19,7 @@
 #include "Utils.hpp"
 
 constexpr unsigned int numberOfPhotons = 10000;
-constexpr auto loadTree = true;
+constexpr auto loadTree = false;
 
 constexpr auto photonsTreeFilename = "photonsTree";
 constexpr auto causticsTreeFilename = "causticsTree";

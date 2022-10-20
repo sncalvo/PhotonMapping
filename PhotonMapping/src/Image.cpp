@@ -52,7 +52,7 @@ Image::~Image() {
 }
 
 void Image::_performGammaCorrection() {
-  auto gamma = FLOAT_CONSTANTS[GAMMA_CORRECTION]
+  auto gamma = FLOAT_CONSTANTS[GAMMA_CORRECTION];
   auto maxNorm = glm::l2Norm(_maxColor);
 
   for (unsigned int colorIndex = 0; colorIndex < width * height; colorIndex++) {
