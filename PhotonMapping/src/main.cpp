@@ -1,6 +1,5 @@
 #include <memory>
 #include <iostream>
-
 #include <embree3/rtcore.h>
 #include <math.h>
 #include <glm/gtx/norm.hpp>

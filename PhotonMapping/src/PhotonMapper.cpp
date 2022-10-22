@@ -1,15 +1,13 @@
 #include "PhotonMapper.hpp"
 
 #include <glm/gtc/random.hpp>
+#include <fstream>
 
 #include "EmbreeWrapper.hpp"
 #include "Constants.hpp"
 #include "Image.hpp"
 
-#include <fstream>
-
 PhotonMapper::PhotonMapper() {
-
 }
 
 glm::vec3 randomNormalizedVector() {
@@ -41,9 +39,9 @@ glm::vec3 randomNormalizedVector2() {
 }
 
 void PhotonMapper::makeMap(const Camera& camera) const {
-  auto image = Image(INT_CONSTANTS[WIDTH], INT_CONSTANTS[HEIGHT]);
-  auto causticsImage = Image(INT_CONSTANTS[WIDTH], INT_CONSTANTS[HEIGHT]);
-  auto depthImage = Image(INT_CONSTANTS[WIDTH], INT_CONSTANTS[HEIGHT]);
+  auto image = Image(2000, 2000);
+  auto causticsImage = Image(10000, 10000);
+  auto depthImage = Image(4000, 4000);
 
   if (BOOL_CONSTANTS[SHOULD_PRINT_HIT_PHOTON_MAP] || BOOL_CONSTANTS[SHOULD_PRINT_DEPTH_PHOTON_MAP]) {
     for (auto hit : _hits) {
@@ -115,10 +113,10 @@ void PhotonMapper::makeMap(const Camera& camera) const {
 
       auto cameraPointPosition = camera.getProjectionMatrix() * camera.getViewMatrix() * glm::vec4(photon.position, 1.f);
 
-      auto u = image.width - ((cameraPointPosition.x * image.width) / (2.f * cameraPointPosition.w) + image.width / 2.f);
+      auto u = causticsImage.width - ((cameraPointPosition.x * causticsImage.width) / (2.f * cameraPointPosition.w) + causticsImage.width / 2.f);
       auto v = (cameraPointPosition.y * image.height) / (2.f * cameraPointPosition.w) + image.height / 2.f;
 
-      if (u >= image.width || u < 0 || v >= image.height || v < 0) {
+      if (u >= causticsImage.width || u < 0 || v >= causticsImage.height || v < 0) {
         continue;
       }
 
@@ -171,7 +169,7 @@ void PhotonMapper::makeCausticsPhotonMap(PhotonMap map) {
       auto randomZ = glm::linearRand(minDirection.z, maxDirection.z);
       auto direction = glm::normalize(glm::vec3(randomX, randomY, randomZ));
 
-      _shootPhoton(position, direction, light->color * (50.f / (float) photonsPerLight), 0, true, false);
+      _shootPhoton(position, direction, light->color * (FLOAT_CONSTANTS[TOTAL_LIGHT] / ((float) photonsPerLight * 50)), 0, true, false);
     }
   }
 
