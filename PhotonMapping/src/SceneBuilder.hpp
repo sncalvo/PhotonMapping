@@ -2,6 +2,7 @@
 #include "Scene.hpp"
 #include "Camera.hpp"
 #include "Model.hpp"
+#include "BoundingBox.hpp"
 
 class SceneBuilder {
 public:
