@@ -147,7 +147,7 @@ void PhotonMapper::makeGlobalPhotonMap(PhotonMap map) {
 
       auto position = light->position;
 
-      _shootPhoton(position, direction, light->color * (50.f / (float) photonsPerLight), 0, false, false);
+      _shootPhoton(position, direction, light->color * (FLOAT_CONSTANTS[TOTAL_LIGHT] / (float) photonsPerLight), 0, false, false);
     }
   }
 

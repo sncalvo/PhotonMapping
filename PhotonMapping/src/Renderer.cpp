@@ -109,21 +109,26 @@ Color3f Renderer::_computeRadianceWithPhotonMap(Intersection &intersection) {
 
   std::vector<float> point{ intersection.position.x, intersection.position.y, intersection.position.z };
   Kdtree::KdNodeVector* neighbors = new std::vector<Kdtree::KdNode>();
-  _tree->k_nearest_neighbors(point, INT_CONSTANTS[PHOTONS_PER_SAMPLE], neighbors);
+  _tree->range_nearest_neighbors(point, FLOAT_CONSTANTS[MAX_PHOTON_SAMPLING_DISTANCE], neighbors);
   float maxDistance = 0.f;
 
   for (auto neighbor : *neighbors) {
-    auto rho = intersection.material.diffuseColor();
-    auto f = rho / PI;
+    auto diff = glm::normalize(neighbor.data.position - intersection.position);
+    bool in_disc_plane = glm::abs(glm::dot(diff, intersection.normal)) <= FLOAT_CONSTANTS[EPSILON];
+    bool points_close = glm::distance2(neighbor.data.position, intersection.position) <= FLOAT_CONSTANTS[EPSILON];
+    if (points_close || in_disc_plane) {
+      auto rho = intersection.material.diffuseColor();
+      auto delta = FLOAT_CONSTANTS[DELTA];
+      auto x = intersection.position.x - neighbor.data.position.x;
+      auto y = intersection.position.y - neighbor.data.position.y;
+      auto z = intersection.position.z - neighbor.data.position.z;
+      auto exp = (x * x + y * y + z * z) / (2.f * delta * delta);
+      auto filter_factor = (2.f * PI * delta * delta);
+      auto value = (1.f / filter_factor) * glm::exp(- exp);
 
-    auto distance = glm::distance2(neighbor.data.position, intersection.position);
-    if (distance > maxDistance) {
-      maxDistance = distance;
+      indirectIllumination += value * rho * neighbor.data.power;
     }
-
-    indirectIllumination += f * neighbor.data.power;
   }
-  indirectIllumination /= (PI * maxDistance);
  
   delete neighbors;
   

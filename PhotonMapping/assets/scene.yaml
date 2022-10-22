@@ -1,11 +1,13 @@
 constants:
-  WIDTH: 512
-  HEIGHT: 512
+  WIDTH: 1920
+  HEIGHT: 1080
   EPSILON: 0.00001
   MAX_PHOTON_SAMPLING_DISTANCE: 0.5
-  MAX_DEPTH: 0
-  PHOTONS_PER_SAMPLE: 100
+  DELTA: 0.2
+  MAX_DEPTH: 5
+  PHOTONS_PER_SAMPLE: 250
   PHOTON_LIMIT: 1000000
+  TOTAL_LIGHT: 200.0
   SHOULD_PRINT_CAUSTICS_HIT_PHOTON_MAP: true
   SHOULD_PRINT_DEPTH_PHOTON_MAP: false
   SHOULD_PRINT_HIT_PHOTON_MAP: false
@@ -70,9 +72,9 @@ lights:
     position: [0.0, 4.15, 7.0]
     color: [1.0, 1.0, 1.0]
     intensity: 1.0
-    constantDecay: 0.2
-    linearDecay: 0.09
-    quadraticDecay: 0.042
+    constantDecay: 0.3
+    linearDecay: 0.15
+    quadraticDecay: 0.084
     uvec: [0.5, 0.0, 0.0]
     vvec: [0.0, 0.0, 0.5]
     usteps: 3
@@ -81,9 +83,9 @@ lights:
     position: [-3.55, 0.0, 6.0]
     color: [1.0, 1.0, 1.0]
     intensity: 1.0
-    constantDecay: 0.2
-    linearDecay: 0.09
-    quadraticDecay: 0.042
+    constantDecay: 0.3
+    linearDecay: 0.15
+    quadraticDecay: 0.084
     uvec: [0.0, 0.5, 0.0]
     vvec: [0.0, 0.0, 0.5]
     usteps: 3
