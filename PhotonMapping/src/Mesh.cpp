@@ -72,12 +72,20 @@ void Mesh::_setupPrimitive(const RTCGeometryType type, RTCDevice device, glm::ve
 void Mesh::_setupQuad(Material material, glm::vec3 corner, glm::vec3 uvec, glm::vec3 vvec, RTCDevice device) {
   _geometry = rtcNewGeometry(device, RTC_GEOMETRY_TYPE_QUAD);
 
+  auto normal = glm::normalize(glm::cross(uvec, vvec));
+
+  std::cout << "corner is " << corner.x << "," << corner.y << "," << corner.z << std::endl;
+  // Move corner on normal direction to let light shine
+  auto origin = corner - normal * FLOAT_CONSTANTS[EPSILON];
+  std::cout << "normal is " << normal.x << "," << normal.y << "," << normal.z << ". Float is: " << FLOAT_CONSTANTS[EPSILON] << std::endl;
+
+  std::cout << "origin is " << origin.x << "," << origin.y << "," << origin.z << std::endl;
   float* vb = (float*) rtcSetNewGeometryBuffer(_geometry,
                                                RTC_BUFFER_TYPE_VERTEX, 0, RTC_FORMAT_FLOAT3, 3*sizeof(float), 4);
-  vb[0] = corner.x; vb[1] = corner.y; vb[2] = corner.z; // 1st vertex
-  vb[3] = corner.x + uvec.x; vb[4] = corner.y + uvec.y; vb[5] = corner.z + uvec.z; // 2nd vertex
-  vb[6] = corner.x + vvec.x + uvec.x; vb[7] = corner.y + vvec.y + uvec.y; vb[8] = corner.z + vvec.z + uvec.z; // 3rd vertex
-  vb[9] = corner.x + vvec.x; vb[10] = corner.y + vvec.y; vb[11] = corner.z + vvec.z; // 4rd vertex
+  vb[0] = origin.x; vb[1] = origin.y; vb[2] = origin.z; // 1st vertex
+  vb[3] = origin.x + uvec.x; vb[4] = origin.y + uvec.y; vb[5] = origin.z + uvec.z; // 2nd vertex
+  vb[6] = origin.x + vvec.x + uvec.x; vb[7] = origin.y + vvec.y + uvec.y; vb[8] = origin.z + vvec.z + uvec.z; // 3rd vertex
+  vb[9] = origin.x + vvec.x; vb[10] = origin.y + vvec.y; vb[11] = origin.z + vvec.z; // 4rd vertex
 
   unsigned* ib = (unsigned*) rtcSetNewGeometryBuffer(_geometry,
                                                      RTC_BUFFER_TYPE_INDEX, 0, RTC_FORMAT_UINT4, 4*sizeof(unsigned), 1);

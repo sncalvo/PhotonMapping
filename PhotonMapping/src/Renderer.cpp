@@ -100,6 +100,7 @@ Color3f Renderer::_calculateColor(glm::vec3 origin, glm::vec3 direction, unsigne
   
   pmColor[0] += indirectIllumination;
   pmColor[1] += caustics;
+  pmColor[2] += rayTracing;
   return caustics + indirectIllumination + rayTracing;
 }
 

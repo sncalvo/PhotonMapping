@@ -65,7 +65,7 @@ models:
 
 lights:
   - type: "areaLight"
-    position: [0.0, 3.9, 7.0]
+    position: [0.0, 4.15, 7.0]
     color: [1.0, 1.0, 1.0]
     intensity: 1.0
     constantDecay: 0.2
@@ -76,7 +76,7 @@ lights:
     usteps: 3
     vsteps: 2                          
   - type: "areaLight"
-    position: [-3.0, 0.0, 6.0]
+    position: [-3.55, 0.0, 6.0]
     color: [1.0, 1.0, 1.0]
     intensity: 1.0
     constantDecay: 0.2

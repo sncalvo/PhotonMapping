@@ -44,9 +44,7 @@ std::shared_ptr<Model> PointLight::getModel() const {
 }
 
 std::shared_ptr<Model> AreaLight::getModel() const {
-  return nullptr;
-  // TODO: Remove when shadow checks work
-  // return _model;
+  return _model;
 }
 
 AreaLight::AreaLight(
@@ -89,7 +87,7 @@ std::vector<glm::vec3> AreaLight::_lightSourcePoints() const {
 }
 
 inline glm::vec3 AreaLight::_pointOnLight(size_t u, size_t v) const {
-    // We sample points in random locations allowing softer shadows
+  // We sample points in random locations allowing softer shadows
   auto uMiddle = (float)u + glm::linearRand(0.f, 1.f);
   auto vMiddle = (float)v + glm::linearRand(0.f, 1.f);
   return _corner + _udirection * uMiddle + _vdirection * vMiddle;

@@ -58,6 +58,10 @@ void Image::_performGammaCorrection() {
   for (unsigned int colorIndex = 0; colorIndex < width * height; colorIndex++) {
     glm::vec3 currentColor = _colorBuffer[colorIndex];
 
+    if (currentColor == glm::vec3{1.f}) {
+      currentColor = _maxColor;
+    }
+    
     if (currentColor != glm::vec3{0.f}) {
       currentColor /= maxNorm;
 
