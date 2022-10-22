@@ -157,6 +157,8 @@ void SceneBuilder::_loadLights(YAML::Node lights) {
 void SceneBuilder::_loadConstants(YAML::Node constants) {
   if (!constants[EPSILON] ||
       !constants[MAX_PHOTON_SAMPLING_DISTANCE] ||
+      !constants[DELTA] ||
+      !constants[TOTAL_LIGHT] ||
       !constants[MAX_DEPTH] ||
       !constants[PHOTONS_PER_SAMPLE] ||
       !constants[PHOTON_LIMIT] ||
@@ -164,11 +166,13 @@ void SceneBuilder::_loadConstants(YAML::Node constants) {
       !constants[SHOULD_PRINT_DEPTH_PHOTON_MAP] ||
       !constants[SHOULD_PRINT_HIT_PHOTON_MAP] ||
       !constants[GAMMA_CORRECTION]) {
-      //throw("MISSING CONSTANTS");
+      throw("MISSING CONSTANTS");
   }
   std::cout << WIDTH << ": " << constants[WIDTH] << std::endl;
   std::cout << HEIGHT << ": " << constants[HEIGHT] << std::endl;
   std::cout << MAX_PHOTON_SAMPLING_DISTANCE << ": " << constants[MAX_PHOTON_SAMPLING_DISTANCE] << std::endl;
+  std::cout << DELTA << ": " << constants[DELTA] << std::endl;
+  std::cout << TOTAL_LIGHT << ": " << constants[TOTAL_LIGHT] << std::endl;
   std::cout << MAX_DEPTH << ": " << constants[MAX_DEPTH] << std::endl;
   std::cout << PHOTONS_PER_SAMPLE << ": " << constants[PHOTONS_PER_SAMPLE] << std::endl;
   std::cout << PHOTON_LIMIT << ": " << constants[PHOTON_LIMIT] << std::endl;
@@ -184,6 +188,8 @@ void SceneBuilder::_loadConstants(YAML::Node constants) {
 
   FLOAT_CONSTANTS[EPSILON] = constants[EPSILON].as<float>();
   FLOAT_CONSTANTS[MAX_PHOTON_SAMPLING_DISTANCE] = constants[MAX_PHOTON_SAMPLING_DISTANCE].as<float>();
+  FLOAT_CONSTANTS[DELTA] = constants[DELTA].as<float>();
+  FLOAT_CONSTANTS[TOTAL_LIGHT] = constants[TOTAL_LIGHT].as<float>();
   FLOAT_CONSTANTS[GAMMA_CORRECTION] = constants[GAMMA_CORRECTION].as<float>();
 
   BOOL_CONSTANTS[SHOULD_PRINT_CAUSTICS_HIT_PHOTON_MAP] = constants[SHOULD_PRINT_CAUSTICS_HIT_PHOTON_MAP].as<bool>();
