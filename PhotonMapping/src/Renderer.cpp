@@ -6,18 +6,6 @@
 #include "EmbreeWrapper.hpp"
 #include "Constants.hpp"
 
-glm::vec3 randomNormalizedVector3() {
-  while (true) {
-    auto x = glm::linearRand(-1.f, 1.f);
-    auto y = glm::linearRand(-1.f, 1.f);
-    auto z = glm::linearRand(-1.f, 1.f);
-
-    if (x * x + y * y + z * z <= 1) {
-      return glm::normalize(glm::vec3(x,y,z));
-    }
-  }
-}
-
 void Renderer::setScene(std::shared_ptr<Scene> scene) {
   _scene = scene;
 }
@@ -54,6 +42,25 @@ glm::vec3 Renderer::_renderPixelSample(
   return _calculateColor(camera->origin, direction, INT_CONSTANTS[MAX_DEPTH], pmColor, false);
 }
 
+float discDistanceFactor(glm::vec3 photon_position, Intersection &intersection, float delta) {
+  auto diff = glm::normalize(photon_position - intersection.position);
+  bool in_disc_plane = glm::abs(glm::dot(diff, intersection.normal)) <= FLOAT_CONSTANTS[EPSILON];
+  bool points_close = glm::distance2(photon_position, intersection.position) <= FLOAT_CONSTANTS[EPSILON];
+
+  if (points_close || in_disc_plane) {
+    auto exp_factor = (2.f * delta * delta);
+    auto filter_factor = 1.f / (exp_factor * PI);
+
+    auto x = intersection.position.x - photon_position.x;
+    auto y = intersection.position.y - photon_position.y;
+    auto z = intersection.position.z - photon_position.z;
+    auto exp = (x * x + y * y + z * z) / exp_factor;
+    return filter_factor * glm::exp(-exp);
+  } else {
+    return 0.f;
+  }
+}
+
 Color3f Renderer::_calculateColor(glm::vec3 origin, glm::vec3 direction, unsigned int depth, Color3f* pmColor, bool in) {
   auto result = _castRay(origin, direction);
 
@@ -85,12 +92,13 @@ Color3f Renderer::_calculateColor(glm::vec3 origin, glm::vec3 direction, unsigne
 
   std::vector<float> point{ intersection.position.x, intersection.position.y, intersection.position.z };
   Kdtree::KdNodeVector* caustic_neighbors = new std::vector<Kdtree::KdNode>();
-  _caustics_tree->range_nearest_neighbors(point, 0.1, caustic_neighbors);
+  _caustics_tree->range_nearest_neighbors(point, FLOAT_CONSTANTS[MAX_PHOTON_SAMPLING_DISTANCE] / 4.f, caustic_neighbors);
 
   glm::vec3 caustics{ 0.f };
   for (auto neighbor : *caustic_neighbors) {
-    auto weight = 1 + glm::distance2(neighbor.data.position, intersection.position);
-    caustics += neighbor.data.power / weight;
+    auto rho = intersection.material.diffuseColor();
+    auto weight = discDistanceFactor(neighbor.data.position, intersection, FLOAT_CONSTANTS[DELTA] / 5.f);
+    caustics += neighbor.data.power * weight * rho;
   }
 
   delete caustic_neighbors;
@@ -110,24 +118,12 @@ Color3f Renderer::_computeRadianceWithPhotonMap(Intersection &intersection) {
   std::vector<float> point{ intersection.position.x, intersection.position.y, intersection.position.z };
   Kdtree::KdNodeVector* neighbors = new std::vector<Kdtree::KdNode>();
   _tree->range_nearest_neighbors(point, FLOAT_CONSTANTS[MAX_PHOTON_SAMPLING_DISTANCE], neighbors);
-  float maxDistance = 0.f;
 
   for (auto neighbor : *neighbors) {
-    auto diff = glm::normalize(neighbor.data.position - intersection.position);
-    bool in_disc_plane = glm::abs(glm::dot(diff, intersection.normal)) <= FLOAT_CONSTANTS[EPSILON];
-    bool points_close = glm::distance2(neighbor.data.position, intersection.position) <= FLOAT_CONSTANTS[EPSILON];
-    if (points_close || in_disc_plane) {
       auto rho = intersection.material.diffuseColor();
-      auto delta = FLOAT_CONSTANTS[DELTA];
-      auto x = intersection.position.x - neighbor.data.position.x;
-      auto y = intersection.position.y - neighbor.data.position.y;
-      auto z = intersection.position.z - neighbor.data.position.z;
-      auto exp = (x * x + y * y + z * z) / (2.f * delta * delta);
-      auto filter_factor = (2.f * PI * delta * delta);
-      auto value = (1.f / filter_factor) * glm::exp(- exp);
+      auto distanceFactor = discDistanceFactor(neighbor.data.position, intersection, FLOAT_CONSTANTS[DELTA]);
 
-      indirectIllumination += value * rho * neighbor.data.power;
-    }
+      indirectIllumination += distanceFactor * rho * neighbor.data.power;
   }
  
   delete neighbors;
