@@ -183,9 +183,9 @@ std::shared_ptr<Scene> SceneBuilder::createScene() {
   }
   _scene = std::make_shared<Scene>(_device);
 
+  _loadConstants(_file["constants"]);
   _loadModels(_file["models"]);
   _loadLights(_file["lights"]);
-  _loadConstants(_file["constants"]);
 
   _scene->commit();
 
