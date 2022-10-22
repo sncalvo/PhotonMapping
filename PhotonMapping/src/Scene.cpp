@@ -12,6 +12,14 @@ void Scene::addModel(std::shared_ptr<Model> model) {
   _materials.insert(modelMaterialMap.begin(), modelMaterialMap.end());
 }
 
+void Scene::addTransparentBoundingBox(std::shared_ptr<BoundingBox> boundingBox) {
+  _transparentBoundingBoxes.push_back(boundingBox);
+}
+
+std::vector<std::shared_ptr<BoundingBox>> Scene::getTransparentBoundingBoxes() {
+  return _transparentBoundingBoxes;
+}
+
 void Scene::addLight(std::shared_ptr<Light> light) {
   _lights.push_back(light);
 

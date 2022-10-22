@@ -95,6 +95,7 @@ void PhotonMapper::makeMap(const Camera& camera) const {
 
   if (BOOL_CONSTANTS[SHOULD_PRINT_CAUSTICS_HIT_PHOTON_MAP]) {
     for (auto hit : _caustic_hits) {
+
       Kdtree::KdNodeVector* caustic_neighbors = new std::vector<Kdtree::KdNode>();
 
       _caustics_tree->k_nearest_neighbors(
@@ -155,15 +156,20 @@ void PhotonMapper::makeGlobalPhotonMap(PhotonMap map) {
 
 void PhotonMapper::makeCausticsPhotonMap(PhotonMap map) {
   auto lights = _scene->getLights();
-  auto photonsPerLight = (INT_CONSTANTS[PHOTON_LIMIT] * 10) / lights.size();
+  auto transparentBoundingBoxes = _scene->getTransparentBoundingBoxes();
+  auto photonsPerLight = INT_CONSTANTS[PHOTON_LIMIT] / lights.size();
   
   for (auto light : lights) {
-    // We use a lot more photons for caustics, since most get discarded
     for (unsigned int i = 0; i < photonsPerLight; i++) {
-      // TODO: We know we won't manage disperse scenes, so let's only generate photons with directions to elements in the scene
-      auto direction = randomNormalizedVector();
+      auto boundingBox = transparentBoundingBoxes.at(rand() % transparentBoundingBoxes.size());
 
       auto position = light->position;
+      auto minDirection = boundingBox->min - position;
+      auto maxDirection = boundingBox->max - position;
+      auto randomX = glm::linearRand(minDirection.x, maxDirection.x);
+      auto randomY = glm::linearRand(minDirection.y, maxDirection.y);
+      auto randomZ = glm::linearRand(minDirection.z, maxDirection.z);
+      auto direction = glm::normalize(glm::vec3(randomX, randomY, randomZ));
 
       _shootPhoton(position, direction, light->color * (50.f / (float) photonsPerLight), 0, true, false);
     }

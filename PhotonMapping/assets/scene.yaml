@@ -41,10 +41,12 @@ materials:
 
 models:
   - type: "sphere"
-    stuff: [-0.5, -2.0, 7.0, 1.0]
-    material: *transparent 
+    center: [-0.5, -2.0, 7.0]
+    radius: 1.0
+    material: *transparent
   - type: "sphere"
-    stuff: [2.0, -2.0, 7.0, 1.0]
+    center: [2.0, -2.0, 7.0]
+    radius: 1.0
     material: *reflective
 
   - type: "fileModel"

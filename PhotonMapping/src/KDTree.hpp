@@ -13,6 +13,7 @@
 #include <cstdlib>
 #include <queue>
 #include <vector>
+#include <string>
 
 #include "PhotonHit.hpp"
 

@@ -86,9 +86,25 @@ SceneBuilder::SceneBuilder(RTCDevice device) : _device(device) {
 }
 
 void SceneBuilder::_addSphere(YAML::Node node) {
-    auto material = node["material"].as<Material>();
-    auto sphere = std::make_shared<Model>(RTC_GEOMETRY_TYPE_SPHERE_POINT, material, _device, node["stuff"].as<glm::vec4>());
-    _scene->addModel(sphere);
+  auto material = node["material"].as<Material>();
+  auto center = node["center"].as<glm::vec3>();
+  auto radius = node["radius"].as<float>();
+  auto boundingBox = std::make_shared<BoundingBox>(
+    center - glm::vec3(radius),
+    center + glm::vec3(radius)
+  );
+  
+  // std::cout << "Bounding box (min): (" << boundingBox.min.x << ", " << boundingBox.min.y << ", " << boundingBox.min.z << ")" << std::endl;
+  // std::cout << "Bounding box (max): (" << boundingBox.max.x << ", " << boundingBox.max.y << ", " << boundingBox.max.z << ")" << std::endl;
+  
+  auto sphere = std::make_shared<Model>(
+    RTC_GEOMETRY_TYPE_SPHERE_POINT,
+    material,
+    _device,
+    glm::vec4(center, radius)
+  );
+  _scene->addModel(sphere);
+  _scene->addTransparentBoundingBox(boundingBox);
 }
 
 void SceneBuilder::_addFileModel(YAML::Node node) {

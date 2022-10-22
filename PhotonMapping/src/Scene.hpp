@@ -9,6 +9,7 @@
 #include "Model.hpp"
 #include "Light.hpp"
 #include "Camera.hpp"
+#include "BoundingBox.hpp"
 
 /// Class representing scene with list of models
 class Scene {
@@ -20,6 +21,14 @@ public:
   /// Adds model to the scene
   /// - Parameter model: Model to be added
   void addModel(std::shared_ptr<Model> model);
+  
+  /// Adds bounding box corresponding to a transparent model
+  /// Used to target them in the caustics map
+  /// - Parameter boundingBox: BoundingBox to be added
+  void addTransparentBoundingBox(std::shared_ptr<BoundingBox> boundingBox);
+  
+  /// Returns all bounding boxes for transparent elements in the scene
+  std::vector<std::shared_ptr<BoundingBox>> getTransparentBoundingBoxes();
   
   /// Adds light to the scene
   /// - Parameter light: Light to be added
@@ -50,4 +59,5 @@ private:
   std::unordered_map<unsigned int, Material> _materials;
   std::vector<std::shared_ptr<Light>> _lights;
   std::shared_ptr<Camera> _camera;
+  std::vector<std::shared_ptr<BoundingBox>> _transparentBoundingBoxes;
 };
