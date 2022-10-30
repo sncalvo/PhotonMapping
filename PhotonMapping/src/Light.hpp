@@ -5,6 +5,7 @@
 #include <memory>
 
 #include <glm/glm.hpp>
+#include <glm/gtc/random.hpp>
 #include <embree3/rtcore.h>
 
 class Model;
@@ -17,6 +18,8 @@ public:
   virtual std::shared_ptr<Model> getModel() const = 0;
 
   glm::vec3 position, color;
+
+  virtual glm::vec3 getPosition() const = 0;
 
 protected:
   Light(glm::vec3 position, glm::vec3 color, float intensity, float constantDecay, float linearDecay, float quadraticDecay) :
@@ -40,6 +43,10 @@ public:
   glm::vec3 intensityFrom(Intersection& intersection, RTCScene scene) const;
 
   std::shared_ptr<Model> getModel() const;
+
+  glm::vec3 getPosition() const {
+    return position;
+  }
 };
 
 class AreaLight : public Light {
@@ -52,6 +59,14 @@ public:
   glm::vec3 intensityFrom(Intersection& intersection, RTCScene scene) const;
 
   std::shared_ptr<Model> getModel() const;
+
+  glm::vec3 getPosition() const {
+    auto x = glm::linearRand(_corner.x, _corner.x + _uvec.x + _vvec.x);
+    auto y = glm::linearRand(_corner.y, _corner.y + _uvec.y + _vvec.y);
+    auto z = glm::linearRand(_corner.z, _corner.z + _uvec.z + _vvec.z);
+
+    return glm::vec3{ x, y, z };
+  }
 
 private:
   std::shared_ptr<Model> _model;

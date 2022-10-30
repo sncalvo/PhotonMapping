@@ -144,7 +144,7 @@ void PhotonMapper::makeGlobalPhotonMap(PhotonMap map) {
       // TODO: We know we won't manage disperse scenes, so let's only generate photons with directions to elements in the scene
       auto direction = randomNormalizedVector();
 
-      auto position = light->position;
+      auto position = light->getPosition();
 
       _shootPhoton(position, direction, light->color * (50.f / (float) photonsPerLight), 0, false, false);
     }
