@@ -114,7 +114,7 @@ void PhotonMapper::makeMap(const Camera& camera) const {
       auto cameraPointPosition = camera.getProjectionMatrix() * camera.getViewMatrix() * glm::vec4(photon.position, 1.f);
 
       auto u = causticsImage.width - ((cameraPointPosition.x * causticsImage.width) / (2.f * cameraPointPosition.w) + causticsImage.width / 2.f);
-      auto v = (cameraPointPosition.y * image.height) / (2.f * cameraPointPosition.w) + image.height / 2.f;
+      auto v = (cameraPointPosition.y * causticsImage.height) / (2.f * cameraPointPosition.w) + causticsImage.height / 2.f;
 
       if (u >= causticsImage.width || u < 0 || v >= causticsImage.height || v < 0) {
         continue;
@@ -161,7 +161,7 @@ void PhotonMapper::makeCausticsPhotonMap(PhotonMap map) {
     for (unsigned int i = 0; i < photonsPerLight; i++) {
       auto boundingBox = transparentBoundingBoxes.at(rand() % transparentBoundingBoxes.size());
 
-      auto position = light->position;
+      auto position = light->getPosition();
       auto minDirection = boundingBox->min - position;
       auto maxDirection = boundingBox->max - position;
       auto randomX = glm::linearRand(minDirection.x, maxDirection.x);

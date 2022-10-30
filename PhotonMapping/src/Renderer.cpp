@@ -78,33 +78,21 @@ Color3f Renderer::_calculateColor(glm::vec3 origin, glm::vec3 direction, unsigne
   Color3f specularColor { 0.f };
   Color3f transparentColor { 0.f };
 
-  if (intersection.material.diffuse > 0.f) {
-    diffuseColor = _renderDiffuse(intersection);
-  }
-
-  if (intersection.material.reflection > 0.f) {
-    specularColor = _renderSpecular(intersection, depth, pmColor, in);
-  }
-
-  if (intersection.material.transparency > 0.f) {
-    transparentColor = _renderTransparent(intersection, depth, pmColor, in);
-  }
-
   std::vector<float> point{ intersection.position.x, intersection.position.y, intersection.position.z };
   Kdtree::KdNodeVector* caustic_neighbors = new std::vector<Kdtree::KdNode>();
-  _caustics_tree->range_nearest_neighbors(point, FLOAT_CONSTANTS[MAX_PHOTON_SAMPLING_DISTANCE] / 4.f, caustic_neighbors);
+  _caustics_tree->range_nearest_neighbors(point, 0.1, caustic_neighbors);
 
   glm::vec3 caustics{ 0.f };
   for (auto neighbor : *caustic_neighbors) {
     auto rho = intersection.material.diffuseColor();
-    auto weight = discDistanceFactor(neighbor.data.position, intersection, FLOAT_CONSTANTS[DELTA] / 5.f);
+    auto weight = discDistanceFactor(neighbor.data.position, intersection, 0.05);
     caustics += neighbor.data.power * weight * rho;
   }
 
   delete caustic_neighbors;
 
   auto rayTracing = diffuseColor + specularColor + transparentColor;
-  auto indirectIllumination = _computeRadianceWithPhotonMap(intersection);
+  auto indirectIllumination = glm::vec3{0.f};
   
   pmColor[0] += indirectIllumination;
   pmColor[1] += caustics;
