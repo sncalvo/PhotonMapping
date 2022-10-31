@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Constants.hpp"
+#include "Utils.hpp"
 #include <vector>
 #include <memory>
 
@@ -60,21 +61,15 @@ public:
 
   std::shared_ptr<Model> getModel() const;
 
-  glm::vec3 getPosition() const {
-    auto x = glm::linearRand(_corner.x, _corner.x + _uvec.x + _vvec.x);
-    auto y = glm::linearRand(_corner.y, _corner.y + _uvec.y + _vvec.y);
-    auto z = glm::linearRand(_corner.z, _corner.z + _uvec.z + _vvec.z);
+  glm::vec3 getPosition() const;
 
-    return glm::vec3{ x, y, z };
-  }
+  glm::vec3 _uvec;
+  glm::vec3 _vvec;
 
 private:
   std::shared_ptr<Model> _model;
 
   glm::vec3 _corner;
-
-  glm::vec3 _uvec;
-  glm::vec3 _vvec;
 
   glm::vec3 _udirection;
   glm::vec3 _vdirection;

@@ -1,4 +1,5 @@
 #include <memory>
+#include <chrono>
 #include <iostream>
 #include <embree3/rtcore.h>
 #include <math.h>
@@ -16,8 +17,6 @@
 #include "SceneBuilder.hpp"
 
 #include "Utils.hpp"
-
-constexpr auto loadTree = false;
 
 constexpr auto photonsTreeFilename = "photonsTree";
 constexpr auto causticsTreeFilename = "causticsTree";
@@ -40,6 +39,10 @@ RTCDevice initializeDevice()
 
 int main()
 {
+  typedef std::chrono::high_resolution_clock Time;
+  typedef std::chrono::milliseconds ms;
+  typedef std::chrono::duration<float> fsec;
+  auto t0 = Time::now();
   std::srand(time(0));
   RTCDevice device = initializeDevice();
   auto maskEnabled = rtcGetDeviceProperty(device, RTC_DEVICE_PROPERTY_RAY_MASK_SUPPORTED);
@@ -63,13 +66,11 @@ int main()
 
   photonMapper.useScene(scene);
 
-  if (loadTree) {
+  if (BOOL_CONSTANTS[LOAD_TREE]) {
     photonMapper.initializeTreeFromFile(photonsTreeFilename, causticsTreeFilename);
   } else {
     photonMapper.makeGlobalPhotonMap(PhotonMap::Global);
     photonMapper.makeCausticsPhotonMap(PhotonMap::Global);
-
-    photonMapper.saveTreeToFile(photonsTreeFilename, causticsTreeFilename);
   }
 
   photonMapper.makeMap(*scene->getCamera());
@@ -89,7 +90,13 @@ int main()
     }
   }
 
-  image->save("test.png");
+  auto t1 = Time::now();
+  fsec fs = t1 - t0;
+  ms d = std::chrono::duration_cast<ms>(fs);
+  std::cout << fs.count() << "s\n";
+  std::cout << d.count() << "ms\n";
+
+  image->save("final.png");
   globalPMImage->save("globalPM.png");
   causticsImage->save("caustics.png");
   directImage->save("diffuse.png");

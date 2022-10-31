@@ -3,7 +3,6 @@
 #include <glm/gtc/random.hpp>
 #include <glm/gtx/norm.hpp>
 
-#include "Utils.hpp"
 #include "EmbreeWrapper.hpp"
 
 #include "Intersection.hpp"
@@ -88,7 +87,15 @@ std::vector<glm::vec3> AreaLight::_lightSourcePoints() const {
 
 inline glm::vec3 AreaLight::_pointOnLight(size_t u, size_t v) const {
   // We sample points in random locations allowing softer shadows
-  auto uMiddle = (float)u + glm::linearRand(0.f, 1.f);
-  auto vMiddle = (float)v + glm::linearRand(0.f, 1.f);
+  auto uMiddle = (float)u + rand01();
+  auto vMiddle = (float)v + rand01();
   return _corner + _udirection * uMiddle + _vdirection * vMiddle;
+}
+
+glm::vec3 AreaLight::getPosition() const {
+  auto x = generalRand(_corner.x, _corner.x + _uvec.x + _vvec.x);
+  auto y = generalRand(_corner.y, _corner.y + _uvec.y + _vvec.y);
+  auto z = generalRand(_corner.z, _corner.z + _uvec.z + _vvec.z);
+
+  return glm::vec3{ x, y, z };
 }

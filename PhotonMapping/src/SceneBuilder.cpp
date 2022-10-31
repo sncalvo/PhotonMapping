@@ -165,6 +165,7 @@ void SceneBuilder::_loadConstants(YAML::Node constants) {
       !constants[SHOULD_PRINT_CAUSTICS_HIT_PHOTON_MAP] ||
       !constants[SHOULD_PRINT_DEPTH_PHOTON_MAP] ||
       !constants[SHOULD_PRINT_HIT_PHOTON_MAP] ||
+      !constants[LOAD_TREE] ||
       !constants[GAMMA_CORRECTION]) {
       throw("MISSING CONSTANTS");
   }
@@ -195,6 +196,7 @@ void SceneBuilder::_loadConstants(YAML::Node constants) {
   BOOL_CONSTANTS[SHOULD_PRINT_CAUSTICS_HIT_PHOTON_MAP] = constants[SHOULD_PRINT_CAUSTICS_HIT_PHOTON_MAP].as<bool>();
   BOOL_CONSTANTS[SHOULD_PRINT_DEPTH_PHOTON_MAP] = constants[SHOULD_PRINT_DEPTH_PHOTON_MAP].as<bool>();
   BOOL_CONSTANTS[SHOULD_PRINT_HIT_PHOTON_MAP] = constants[SHOULD_PRINT_HIT_PHOTON_MAP].as<bool>();
+  BOOL_CONSTANTS[LOAD_TREE] = constants[LOAD_TREE].as<bool>();
 }
 
 std::shared_ptr<Scene> SceneBuilder::createScene() {

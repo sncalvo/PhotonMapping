@@ -1,23 +1,24 @@
 constants:
-  WIDTH: 512
-  HEIGHT: 512
+  WIDTH: 1920
+  HEIGHT: 1920
   EPSILON: 0.00001
-  MAX_PHOTON_SAMPLING_DISTANCE: 1.0
-  DELTA: 0.4
+  MAX_PHOTON_SAMPLING_DISTANCE: 0.6
+  DELTA: 0.2
   MAX_DEPTH: 5
   PHOTONS_PER_SAMPLE: 250
-  PHOTON_LIMIT: 100000
-  TOTAL_LIGHT: 200.0
+  PHOTON_LIMIT: 1000000
+  TOTAL_LIGHT: 100.0
   SHOULD_PRINT_CAUSTICS_HIT_PHOTON_MAP: true
   SHOULD_PRINT_DEPTH_PHOTON_MAP: false
   SHOULD_PRINT_HIT_PHOTON_MAP: true
+  LOAD_TREE: false
   GAMMA_CORRECTION: 2.2
 
 materials:
   - &transparent
     color: [0.8, 0.8, 0.8]
     diffuse: 0.0
-    reflection: 0.0
+    reflection: 0.05
     transparency: 0.9
     refractionIndex: 1.5
   - &reflective
@@ -35,6 +36,12 @@ materials:
     diffuse: 0.9
     reflection: 0.0
     transparency: 0.0
+  - &transparent-red
+    color: [1.0, 0.6, 0.6]
+    diffuse: 0.0
+    reflection: 0.05
+    transparency: 0.9
+    refractionIndex: 1.5
   - &blue
     color: [0.0, 0.0, 1.0]
     diffuse: 0.9
@@ -45,7 +52,7 @@ models:
   - type: "sphere"
     center: [-0.5, -2.0, 7.0]
     radius: 1.0
-    material: *transparent
+    material: *transparent-red
   - type: "sphere"
     center: [2.0, -2.0, 7.0]
     radius: 1.0
@@ -75,35 +82,18 @@ lights:
     constantDecay: 0.3
     linearDecay: 0.15
     quadraticDecay: 0.084
-    uvec: [0.5, 0.0, 0.0]
-    vvec: [0.0, 0.0, 0.5]
-    usteps: 3
-    vsteps: 2                          
+    uvec: [1.0, 0.0, 0.0]
+    vvec: [0.0, 0.0, 1.0]
+    usteps: 10
+    vsteps: 10
   - type: "areaLight"
-    position: [-3.55, 0.0, 6.0]
+    position: [-3.55, 0.0, 7.0]
     color: [1.0, 1.0, 1.0]
     intensity: 1.0
     constantDecay: 0.3
     linearDecay: 0.15
     quadraticDecay: 0.084
-    uvec: [0.0, 0.5, 0.0]
-    vvec: [0.0, 0.0, 0.5]
-    usteps: 3
-    vsteps: 2
-    
-    
-    
-    
-    
-    
-    
-    
-    
-      
-      
-      
-      
-      
-      
-      
-      
+    uvec: [0.0, 1.0, 0.0]
+    vvec: [0.0, 0.0, 1.0]
+    usteps: 10
+    vsteps: 10

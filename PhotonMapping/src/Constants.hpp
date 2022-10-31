@@ -17,8 +17,9 @@ extern std::string EPSILON;
 extern std::string MAX_PHOTON_SAMPLING_DISTANCE;
 extern std::string DELTA;
 extern std::string TOTAL_LIGHT;
+extern std::string GAMMA_CORRECTION;
 
 extern std::string SHOULD_PRINT_CAUSTICS_HIT_PHOTON_MAP;
 extern std::string SHOULD_PRINT_DEPTH_PHOTON_MAP;
 extern std::string SHOULD_PRINT_HIT_PHOTON_MAP;
-extern std::string GAMMA_CORRECTION;
+extern std::string LOAD_TREE;
