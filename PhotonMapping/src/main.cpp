@@ -67,10 +67,13 @@ int main()
   photonMapper.useScene(scene);
 
   if (BOOL_CONSTANTS[LOAD_TREE]) {
+    std::cout << "CARGANDO VIEJA" << std::endl;
     photonMapper.initializeTreeFromFile(photonsTreeFilename, causticsTreeFilename);
   } else {
     photonMapper.makeGlobalPhotonMap(PhotonMap::Global);
     photonMapper.makeCausticsPhotonMap(PhotonMap::Global);
+
+    photonMapper.saveTreeToFile(photonsTreeFilename, causticsTreeFilename);
   }
 
   photonMapper.makeMap(*scene->getCamera());

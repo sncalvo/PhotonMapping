@@ -482,16 +482,20 @@ KdTree* KdTree::load(const std::string& filename) {
   fileSize.read((char*)&size, sizeof(size_t));
 
   KdNodeVector* allnodes = new std::vector<KdNode>(size);
+  KdNodeVector* allnodesPosta = new std::vector<KdNode>(size);
 
   for (size_t i = 0; i < size; i++) {
     file.read((char*)&(*allnodes)[i], sizeof(KdNode));
     // For some reason the point is not set up correctly
-    (*allnodes)[i].point[0] = (*allnodes)[i].data.position.x;
-    (*allnodes)[i].point[1] = (*allnodes)[i].data.position.y;
-    (*allnodes)[i].point[2] = (*allnodes)[i].data.position.z;
+    (*allnodesPosta)[i].point.push_back((*allnodes)[i].data.position.x);
+    (*allnodesPosta)[i].point.push_back((*allnodes)[i].data.position.y);
+    (*allnodesPosta)[i].point.push_back((*allnodes)[i].data.position.z);
+    auto data = (*allnodes)[i].data;
+    auto ph = PhotonHit{data.position, data.normal, data.incidentDirection, data.power, data.depth};
+    (*allnodesPosta)[i].data = ph;
   }
 
-  KdTree* tree = new KdTree(allnodes);
+  KdTree* tree = new KdTree(allnodesPosta);
 
   file.close();
   fileSize.close();
