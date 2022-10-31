@@ -135,8 +135,11 @@ Color3f Renderer::_computeRadianceWithPhotonMap(Intersection &intersection) {
   for (auto neighbor : *neighbors) {
       auto rho = intersection.material.diffuseColor();
       auto distanceFactor = discDistanceFactor(neighbor.data.position, intersection, FLOAT_CONSTANTS[DELTA]);
-
-      indirectIllumination += distanceFactor * rho * neighbor.data.power;
+      auto power = neighbor.data.power;
+      if(isnan(power.x) || isnan(power.y) || isnan(power.z)) {
+        continue;
+      }
+      indirectIllumination += distanceFactor * rho * power;
   }
  
   delete neighbors;
