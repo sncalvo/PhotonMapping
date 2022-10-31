@@ -2,6 +2,7 @@
 
 #include <glm/gtx/norm.hpp>
 #include "Constants.hpp"
+#include "Utils.hpp"
 
 constexpr unsigned int PIXEL_SIZE = 24;
 
@@ -59,7 +60,8 @@ void Image::_performGammaCorrection() {
     glm::vec3 currentColor = _colorBuffer[colorIndex];
 
     if (currentColor == glm::vec3{1.f}) {
-      currentColor = _maxColor;
+      auto maxComp = maxComponent(_maxColor);
+      currentColor = glm::vec3{maxComp};
     }
     
     if (currentColor != glm::vec3{0.f}) {

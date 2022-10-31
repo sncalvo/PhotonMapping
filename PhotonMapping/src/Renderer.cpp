@@ -42,20 +42,24 @@ glm::vec3 Renderer::_renderPixelSample(
   return _calculateColor(camera->origin, direction, INT_CONSTANTS[MAX_DEPTH], pmColor, false);
 }
 
-float discDistanceFactor(glm::vec3 photon_position, Intersection &intersection, float delta) {
+float discDistanceFactor(glm::vec3 photon_position, Intersection &intersection, float delta, bool gaussian_mode = true) {
   auto diff = glm::normalize(photon_position - intersection.position);
-  bool in_disc_plane = glm::abs(glm::dot(diff, intersection.normal)) <= FLOAT_CONSTANTS[EPSILON];
-  bool points_close = glm::distance2(photon_position, intersection.position) <= FLOAT_CONSTANTS[EPSILON];
+  bool in_disc_plane = glm::abs(glm::dot(diff, intersection.normal)) <= 100.f * FLOAT_CONSTANTS[EPSILON];
+  bool points_close = glm::distance2(photon_position, intersection.position) <= 100.f * FLOAT_CONSTANTS[EPSILON];
 
   if (points_close || in_disc_plane) {
-    auto exp_factor = (2.f * delta * delta);
-    auto filter_factor = 1.f / (exp_factor * PI);
+    if (gaussian_mode) {
+      auto exp_factor = (2.f * delta * delta);
+      auto filter_factor = 1.f / (exp_factor * PI);
 
-    auto x = intersection.position.x - photon_position.x;
-    auto y = intersection.position.y - photon_position.y;
-    auto z = intersection.position.z - photon_position.z;
-    auto exp = (x * x + y * y + z * z) / exp_factor;
-    return filter_factor * glm::exp(-exp);
+      auto x = intersection.position.x - photon_position.x;
+      auto y = intersection.position.y - photon_position.y;
+      auto z = intersection.position.z - photon_position.z;
+      auto exp = (x * x + y * y + z * z) / exp_factor;
+      return filter_factor * glm::exp(-exp);
+    } else {
+      return 1 + glm::distance(photon_position, intersection.position);
+    }
   } else {
     return 0.f;
   }
@@ -78,26 +82,47 @@ Color3f Renderer::_calculateColor(glm::vec3 origin, glm::vec3 direction, unsigne
   Color3f specularColor { 0.f };
   Color3f transparentColor { 0.f };
 
+  if (intersection.material.diffuse > 0.f) {
+    diffuseColor = _renderDiffuse(intersection);
+  }
+
+  if (intersection.material.reflection > 0.f && !in) {
+    specularColor = _renderSpecular(intersection, depth, pmColor, in);
+  }
+
+  if (intersection.material.transparency > 0.f) {
+    transparentColor = _renderTransparent(intersection, depth, pmColor, in);
+  }
+
   std::vector<float> point{ intersection.position.x, intersection.position.y, intersection.position.z };
   Kdtree::KdNodeVector* caustic_neighbors = new std::vector<Kdtree::KdNode>();
-  _caustics_tree->range_nearest_neighbors(point, 0.1, caustic_neighbors);
+  _caustics_tree->range_nearest_neighbors(point, FLOAT_CONSTANTS[MAX_PHOTON_SAMPLING_DISTANCE] / 2.f, caustic_neighbors);
 
   glm::vec3 caustics{ 0.f };
   for (auto neighbor : *caustic_neighbors) {
     auto rho = intersection.material.diffuseColor();
-    auto weight = discDistanceFactor(neighbor.data.position, intersection, 0.05);
+    auto weight = discDistanceFactor(neighbor.data.position, intersection, FLOAT_CONSTANTS[DELTA] / 3.f);
     caustics += neighbor.data.power * weight * rho;
   }
 
   delete caustic_neighbors;
 
   auto rayTracing = diffuseColor + specularColor + transparentColor;
-  auto indirectIllumination = glm::vec3{0.f};
+  auto indirectIllumination = _computeRadianceWithPhotonMap(intersection);
+
+  if (indirectIllumination.x < 0.f || indirectIllumination.y < 0.f || indirectIllumination.z < 0.f) {
+    std::cout << indirectIllumination.x << ", " << indirectIllumination.y << ", " << indirectIllumination.z << std::endl;
+  }
+  if (indirectIllumination.x >= 1000.f || indirectIllumination.y >= 1000.f || indirectIllumination.z >= 1000.f) {
+    std::cout << indirectIllumination.x << ", " << indirectIllumination.y << ", " << indirectIllumination.z << std::endl;
+  }
   
   pmColor[0] += indirectIllumination;
   pmColor[1] += caustics;
-  pmColor[2] += rayTracing;
-  return caustics + indirectIllumination + rayTracing;
+  if (depth == INT_CONSTANTS[MAX_DEPTH]) {
+    pmColor[2] += rayTracing;
+  }
+  return rayTracing + indirectIllumination + caustics;
 }
 
 Color3f Renderer::_computeRadianceWithPhotonMap(Intersection &intersection) {
@@ -185,10 +210,15 @@ Color3f Renderer::_renderTransparent(Intersection &intersection, unsigned int de
 
   Color3f color{ 0.f };
 
+  Color3f color_factor = glm::vec3{1.f};
+  if (!in) {
+    color_factor = intersection.material.transparencyColor();
+  }
+
   color += _calculateColor(
     refractionPosition,
     refractionDirection, depth - 1, pmColor, newIn
-  ) * intersection.material.transparency;
+  );
 
 //  if (refractionRatio * sinTheta <= 1.f) {
 //    // shorturl.at/cDGZ1
@@ -206,5 +236,5 @@ Color3f Renderer::_renderTransparent(Intersection &intersection, unsigned int de
 //    ) * intersection.material.transparency;
 //  }
 
-  return color;
+  return color * color_factor;
 }

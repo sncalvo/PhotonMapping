@@ -6,15 +6,16 @@
 #include "EmbreeWrapper.hpp"
 #include "Constants.hpp"
 #include "Image.hpp"
+#include "Utils.hpp"
 
 PhotonMapper::PhotonMapper() {
 }
 
 glm::vec3 randomNormalizedVector() {
   while (true) {
-    auto x = glm::linearRand(-1.f, 1.f);
-    auto y = glm::linearRand(-1.f, 1.f);
-    auto z = glm::linearRand(-1.f, 1.f);
+    auto x = rand11();
+    auto y = rand11();
+    auto z = rand11();
 
     if (x * x + y * y + z * z <= 1) {
       return glm::normalize(glm::vec3(x,y,z));
@@ -24,9 +25,9 @@ glm::vec3 randomNormalizedVector() {
 
 glm::vec3 randomNormalizedVector2() {
   while (true) {
-    auto x = glm::linearRand(-1.f, 1.f);
-    auto y = glm::linearRand(-1.f, 1.f);
-    auto z = glm::linearRand(-1.f, 1.f);
+    auto x = rand11();
+    auto y = rand11();
+    auto z = rand11();
 
     if (glm::abs(x) < 0.1f || glm::abs(y) < 0.1f || glm::abs(z) < 0.1f) {
       continue;
@@ -40,7 +41,7 @@ glm::vec3 randomNormalizedVector2() {
 
 void PhotonMapper::makeMap(const Camera& camera) const {
   auto image = Image(2000, 2000);
-  auto causticsImage = Image(10000, 10000);
+  auto causticsImage = Image(4000, 4000);
   auto depthImage = Image(4000, 4000);
 
   if (BOOL_CONSTANTS[SHOULD_PRINT_HIT_PHOTON_MAP] || BOOL_CONSTANTS[SHOULD_PRINT_DEPTH_PHOTON_MAP]) {
@@ -164,12 +165,12 @@ void PhotonMapper::makeCausticsPhotonMap(PhotonMap map) {
       auto position = light->getPosition();
       auto minDirection = boundingBox->min - position;
       auto maxDirection = boundingBox->max - position;
-      auto randomX = glm::linearRand(minDirection.x, maxDirection.x);
-      auto randomY = glm::linearRand(minDirection.y, maxDirection.y);
-      auto randomZ = glm::linearRand(minDirection.z, maxDirection.z);
+      auto randomX = generalRand(minDirection.x, maxDirection.x);
+      auto randomY = generalRand(minDirection.y, maxDirection.y);
+      auto randomZ = generalRand(minDirection.z, maxDirection.z);
       auto direction = glm::normalize(glm::vec3(randomX, randomY, randomZ));
 
-      _shootPhoton(position, direction, light->color * (FLOAT_CONSTANTS[TOTAL_LIGHT] / ((float) photonsPerLight * 50)), 0, true, false);
+      _shootPhoton(position, direction, light->color * (FLOAT_CONSTANTS[TOTAL_LIGHT] / ((float) photonsPerLight * 70.f)), 0, true, false);
     }
   }
 
@@ -194,8 +195,8 @@ void PhotonMapper::saveTreeToFile(std::string photonsTreeFilename, std::string c
   std::cout << "Saving photon map to file " << photonsTreeFilename << std::endl;
   std::cout << "Saving caustics photon map to file " << causticsTreeFilename << std::endl;
   _tree->save(photonsTreeFilename);
-  _caustics_tree->save(causticsTreeFilename);
   std::cout << "Saved photon map from file " << photonsTreeFilename << std::endl;
+  _caustics_tree->save(causticsTreeFilename);
   std::cout << "Saved caustics photon map from file " << causticsTreeFilename << std::endl;
 }
 
@@ -219,7 +220,7 @@ void PhotonMapper::_shootPhoton(const glm::vec3 origin, const glm::vec3 directio
   auto reflectionThreshold = diffuseThreshold + intersection.material.specularMaxPower(power);
   auto transparencyThreshold = reflectionThreshold + intersection.material.transparencyMaxPower(power);
 
-  auto randomSample = glm::linearRand(0.f, 1.f);
+  auto randomSample = rand01();
 
   if (randomSample <= diffuseThreshold) {
     if (depth != 0) {
@@ -227,7 +228,7 @@ void PhotonMapper::_shootPhoton(const glm::vec3 origin, const glm::vec3 directio
     }
 
     if (!isCausticMode) {
-      auto reflectionDirection = randomNormalizedVector2();
+      auto reflectionDirection = randomNormalizedVector();
 
       if (glm::dot(reflectionDirection, intersection.normal) < 0) {
         reflectionDirection = -reflectionDirection;
@@ -245,31 +246,33 @@ void PhotonMapper::_shootPhoton(const glm::vec3 origin, const glm::vec3 directio
       _shootPhoton(reflectionPosition, reflectionDirection, intersection.material.specularPower(power), depth + 1, isCausticMode, in);
     }
   } else if (randomSample <= transparencyThreshold || in) {
-    auto cosTita = glm::dot(-intersection.normal, intersection.direction);
-    auto normal = intersection.normal;
-    float nuIt;
-    if (cosTita < 0) {
-      cosTita = glm::dot(intersection.normal, intersection.direction);
-      normal = -intersection.normal;
-    }
+    if (isCausticMode) {
+      auto cosTita = glm::dot(-intersection.normal, intersection.direction);
+      auto normal = intersection.normal;
+      float nuIt;
+      if (cosTita < 0) {
+        cosTita = glm::dot(intersection.normal, intersection.direction);
+        normal = -intersection.normal;
+      }
 
-    if (in) {
-      nuIt = intersection.material.refractionIndex / 1.0;
-    } else {
-      nuIt = 1.0 / intersection.material.refractionIndex;
-    }
+      if (in) {
+        nuIt = intersection.material.refractionIndex / 1.0;
+      } else {
+        nuIt = 1.0 / intersection.material.refractionIndex;
+      }
 
-    float Ci = cosTita;
-		float SiSqrd = 1 - pow(Ci, 2);
-		float discriminant = 1 - pow(nuIt, 2) * SiSqrd;
-		if (discriminant < 0) {
-			return; //Total Internal Reflection case
-		}
-		else {
-			glm::vec3 refractionDirection = nuIt * intersection.direction + (Ci * nuIt - sqrtf(discriminant)) * normal;
-      auto refractionPosition = intersection.position + FLOAT_CONSTANTS[EPSILON] * refractionDirection;
-      _shootPhoton(intersection.position, refractionDirection, intersection.material.transparencyPower(power), depth + 1, isCausticMode, !in);
-		}
+      float Ci = cosTita;
+      float SiSqrd = 1 - pow(Ci, 2);
+      float discriminant = 1 - pow(nuIt, 2) * SiSqrd;
+      if (discriminant < 0) {
+        return; //Total Internal Reflection case
+      }
+      else {
+        glm::vec3 refractionDirection = nuIt * intersection.direction + (Ci * nuIt - sqrtf(discriminant)) * normal;
+        auto refractionPosition = intersection.position + FLOAT_CONSTANTS[EPSILON] * refractionDirection;
+        _shootPhoton(intersection.position, refractionDirection, intersection.material.transparencyPower(power), depth + 1, isCausticMode, !in);
+      }
+    }
   } else if (depth != 0) {
     _addHit(photonHit, isCausticMode);
   }

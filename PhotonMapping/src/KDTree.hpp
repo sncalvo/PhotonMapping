@@ -98,8 +98,8 @@ public:
   kdtree_node* root;
     // distance_type can be 0 (max), 1 (city block), or 2 (euklid)
   KdTree(const KdNodeVector* nodes, int distance_type = 2);
-  ~KdTree();
-  void set_distance(int distance_type, const DoubleVector* weights = NULL);
+      ~KdTree();
+      void set_distance(int distance_type, const DoubleVector* weights = NULL);
   void k_nearest_neighbors(const CoordPoint& point, size_t k,
                            KdNodeVector* result, KdNodePredicate* pred = NULL);
   void range_nearest_neighbors(const CoordPoint& point, float r,

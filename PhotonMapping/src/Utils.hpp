@@ -83,3 +83,15 @@ inline float maxComponent(glm::vec3 vector) {
 inline float maxComponent(float first, float second, float third) {
   return std::max(first, std::max(second, third));
 }
+
+inline float rand01() {
+  return (static_cast <float> (rand()) / static_cast <float> (RAND_MAX));
+}
+
+inline float rand11() {
+  return rand01() * 2.f - 1.f;
+}
+
+inline float generalRand(float min, float max) {
+  return rand01() * (max - min) + min;
+}
